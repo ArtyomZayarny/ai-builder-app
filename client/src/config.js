@@ -9,7 +9,7 @@ const isProduction = import.meta.env.MODE === 'production';
 // Backend URL configuration
 const BACKEND_URLS = {
   development: 'http://localhost:3001',
-  production: 'https://ai-builder-app-be.vercel.app',
+  production: import.meta.env.VITE_BACKEND_URL,
 };
 
 // Get the backend URL from environment variable or use defaults
