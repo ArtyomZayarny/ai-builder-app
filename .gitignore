@@ -23,3 +23,10 @@ node_modules/
 
 # OS specific
 .DS_Store
+
+# Project management files (keep locally, exclude from GitHub)
+.taskmaster/
+.cursor/
+docs/
+scripts/
+.env.example
