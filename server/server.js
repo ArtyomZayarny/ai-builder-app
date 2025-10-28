@@ -3,6 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import pool, { closePool } from './db/connection.js';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import resumeRoutes from './routes/resumes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,13 +36,10 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Routes will be added here
-// import authRoutes from './routes/auth.js';
-// import userRoutes from './routes/users.js';
-// import resumeRoutes from './routes/resumes.js';
-// app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/resumes', resumeRoutes);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/resumes', resumeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, _next) => {
