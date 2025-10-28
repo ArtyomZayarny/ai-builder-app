@@ -3,6 +3,16 @@ import 'dotenv/config';
 
 const { Pool } = pg;
 
+// Log database configuration
+console.log('🔍 Database Configuration:');
+console.log({
+  DB_HOST: process.env.DB_HOST,
+  DB_PORT: process.env.DB_PORT,
+  DB_NAME: process.env.DB_NAME,
+  DB_USER: process.env.DB_USER,
+  DB_PASSWORD: process.env.DB_PASSWORD ? '***' + process.env.DB_PASSWORD.slice(-4) : 'NOT SET',
+});
+
 // Create connection pool
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -10,9 +20,12 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'resume_builder',
   user: process.env.DB_USER || 'resume_user',
   password: process.env.DB_PASSWORD || 'resume_pass_dev',
+  ssl: {
+    rejectUnauthorized: false,
+  },
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+  connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
 });
 
 // Test connection on startup
@@ -22,7 +35,7 @@ pool.on('connect', () => {
 
 pool.on('error', err => {
   console.error('❌ Unexpected error on idle client', err);
-  process.exit(-1);
+  // Don't exit process - allow server to run without database
 });
 
 // Helper function to execute queries

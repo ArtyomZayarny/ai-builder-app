@@ -15,6 +15,11 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.send('Server is a live!');
+});
+
 // Basic health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
