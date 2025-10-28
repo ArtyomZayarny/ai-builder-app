@@ -169,6 +169,20 @@ Key variables:
 
 Coming soon...
 
+## 🚢 CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Automated Checks
+
+On every push and pull request:
+- ✅ ESLint checks (client & server)
+- ✅ Automated tests (when available)
+- ✅ Frontend build verification
+- ✅ Backend startup verification
+
+See [Deployment Guide](docs/deployment.md) for detailed deployment instructions and configuration.
+
 ## 📝 License
 
 MIT
