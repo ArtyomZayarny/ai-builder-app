@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API, BACKEND_URL } from '../config';
 
 export default function HealthCheck() {
   const [status, setStatus] = useState({ loading: true, data: null, error: null });
@@ -6,7 +7,7 @@ export default function HealthCheck() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('/api/health');
+        const response = await fetch(API.HEALTH);
         const data = await response.json();
         setStatus({ loading: false, data, error: null });
       } catch (error) {
@@ -33,7 +34,7 @@ export default function HealthCheck() {
         <div style={{ ...styles.card, ...styles.error }}>
           <h2>❌ API Connection Failed</h2>
           <p style={styles.message}>Error: {status.error}</p>
-          <p style={styles.hint}>Make sure the backend server is running on port 5000</p>
+          <p style={styles.hint}>Make sure the backend server is running at: {BACKEND_URL}</p>
         </div>
       </div>
     );
@@ -44,6 +45,9 @@ export default function HealthCheck() {
       <div style={{ ...styles.card, ...styles.success }}>
         <h2>✅ API Connection Successful</h2>
         <div style={styles.details}>
+          <p>
+            <strong>Backend URL:</strong> <span style={styles.url}>{BACKEND_URL}</span>
+          </p>
           <p>
             <strong>Status:</strong> {status.data.status}
           </p>
@@ -98,5 +102,10 @@ const styles = {
     marginTop: '20px',
     paddingTop: '20px',
     borderTop: '1px solid #e5e7eb',
+  },
+  url: {
+    color: '#3b82f6',
+    fontFamily: 'monospace',
+    fontSize: '14px',
   },
 };
