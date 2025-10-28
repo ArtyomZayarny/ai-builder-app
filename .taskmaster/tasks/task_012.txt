@@ -1,0 +1,11 @@
+# Task ID: 12
+# Title: Design and implement first resume template
+# Status: pending
+# Dependencies: 6, 7, 8, 9, 10, 11
+# Priority: high
+# Description: Create the first professional resume template with responsive layout and proper formatting.
+# Details:
+Design and implement the 'Classic' template as specified in F-012. Create a responsive layout that works well on different screen sizes and for PDF export. Implement proper styling for all resume sections (personal info, summary, experience, education, projects, skills). Ensure the template is ATS-friendly with clean, semantic HTML. Use CSS variables for theming support (to be used with color customization later). Create a preview component that renders the resume with the selected template. Ensure proper page breaks for PDF export.
+
+# Test Strategy:
+Test the template rendering with various data combinations. Verify that the layout is responsive on different screen sizes. Test with missing data to ensure graceful handling. Verify that the template is visually consistent with the design specifications. Test print preview to ensure proper page breaks.

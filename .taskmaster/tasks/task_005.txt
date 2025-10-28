@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Build resume builder core structure
+# Status: pending
+# Dependencies: 4
+# Priority: high
+# Description: Create the foundation for the resume builder interface with navigation between sections and form state management.
+# Details:
+Implement the core structure of the resume builder with a sidebar for section navigation, main area for form inputs, and optional right panel for live preview. Set up client-side routing or tab navigation between sections (Personal Info, Summary, Experience, Education, Projects, Skills). Implement form state management using React Hook Form with Zod validation or Redux Toolkit. Create a layout that supports both desktop and mobile views. Add auto-save functionality that triggers every 30 seconds. Implement basic error handling and loading states.
+
+# Test Strategy:
+Test navigation between different sections. Verify that form state is preserved when switching sections. Test auto-save functionality with network delays and failures. Verify that the layout is responsive on different screen sizes. Test form validation with valid and invalid inputs.

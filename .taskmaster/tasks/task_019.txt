@@ -1,0 +1,11 @@
+# Task ID: 19
+# Title: Develop PDF resume upload and parsing
+# Status: pending
+# Dependencies: 6, 7, 8, 9, 10, 11
+# Priority: medium
+# Description: Create functionality for uploading existing PDF resumes and automatically populating resume fields.
+# Details:
+Implement PDF upload and parsing according to F-011 specifications. Create a file upload interface that accepts PDF files up to 10MB. Implement client-side validation for file type and size. Integrate a PDF parsing library (pdf-parse or similar) on the backend. Implement intelligent field mapping to resume sections using NLP or pattern matching. Add confidence scoring for extracted data. Create a review and edit interface for users to correct extraction errors. Implement proper error handling for unparseable PDFs. Store the original PDF temporarily and delete after successful import.
+
+# Test Strategy:
+Test file upload with various PDF formats. Verify that parsing works correctly for common resume layouts. Test the review and edit interface. Verify that extraction errors can be corrected. Test with complex layouts and image-based PDFs to understand limitations. Verify that temporary files are properly deleted after import.

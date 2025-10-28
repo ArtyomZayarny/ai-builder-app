@@ -1,0 +1,11 @@
+# Task ID: 13
+# Title: Implement PDF generation and download
+# Status: pending
+# Dependencies: 12
+# Priority: high
+# Description: Create functionality to generate and download resumes as PDF files.
+# Details:
+Implement PDF generation according to F-014 specifications. Integrate a PDF generation library (Puppeteer, PDFKit, or html2pdf) on the backend. Create an API endpoint for generating PDFs from resume data. Implement proper page breaks and formatting for the PDF output. Ensure fonts are embedded for consistent rendering. Add metadata (title, author) to the generated PDF. Set the filename format to '[FirstName]_[LastName]_Resume.pdf'. Add a download button in the UI that triggers the PDF generation and download.
+
+# Test Strategy:
+Test PDF generation with various data combinations. Verify that the PDF output matches the preview. Test with very long content to ensure proper page breaks. Verify that fonts are rendered consistently. Test the download functionality in different browsers. Verify that the PDF is ATS-friendly.

@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Develop professional summary section
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Create the professional summary section with text input and character count.
+# Details:
+Implement the professional summary section according to F-005 specifications. Create a textarea input for the summary with a recommended character count of 250-500. Add a character count indicator that updates in real-time. Implement form validation and state management. Create API endpoints for saving and retrieving the summary. Add a placeholder for the AI enhancement button (to be implemented later). Ensure the textarea is resizable for better user experience.
+
+# Test Strategy:
+Test form submission with valid inputs. Verify that the character count updates correctly. Test saving and retrieving data from the API. Verify that the textarea is properly resizable. Test with very long text to ensure proper handling.

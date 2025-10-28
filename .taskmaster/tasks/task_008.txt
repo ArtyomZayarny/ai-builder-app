@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Build work experience section
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Create the work experience section with CRUD operations for multiple job entries.
+# Details:
+Implement the work experience section according to F-006 specifications. Create a form for adding and editing work experiences with fields for company name (required), job title (required), location (optional), start date (required, date picker), end date (optional, date picker), 'Present' checkbox for current positions, and description (required). Implement CRUD operations for managing multiple entries. Add buttons for adding new experiences and removing existing ones. Create API endpoints for saving, retrieving, updating, and deleting experiences. Add placeholders for AI enhancement and reordering (to be implemented later).
+
+# Test Strategy:
+Test adding, editing, and deleting work experiences. Verify that validation works correctly for all fields. Test the 'Present' checkbox functionality. Test saving and retrieving data from the API. Verify that multiple experiences can be added and managed correctly.

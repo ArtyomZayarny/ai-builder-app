@@ -1,0 +1,446 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set up project structure and environment",
+        "description": "Initialize the project repositories for both frontend and backend, configure build tools, and establish the development environment.",
+        "details": "Create two repositories: one for the React frontend and one for the Express backend. For the frontend, use Vite as the build tool with React 18+. Set up ESLint and Prettier for code quality. For the backend, initialize a Node.js project with Express, configure ESLint, and set up environment variables using dotenv. Create a comprehensive .gitignore file for both repositories. Establish the folder structure as outlined in section 5.4 of the PRD. Set up a development database (PostgreSQL recommended).",
+        "testStrategy": "Verify that both repositories can be cloned and run locally. Ensure that the development environment variables are properly loaded. Test that the frontend can make API calls to the backend. Verify that the database connection is working.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize frontend repository with Vite and React",
+            "description": "Create and set up the frontend repository with Vite as the build tool and React 18+.",
+            "dependencies": [],
+            "details": "Create a new repository for the frontend. Initialize a new Vite project with React template using 'npm create vite@latest frontend -- --template react'. Configure the project with TypeScript support. Set up the basic folder structure according to section 5.4 of the PRD, including components, pages, services, and utils directories. Create a comprehensive .gitignore file for frontend development.",
+            "status": "pending",
+            "testStrategy": "Verify that the repository can be cloned and the application can be started with 'npm run dev'. Ensure that the basic React application renders correctly in the browser."
+          },
+          {
+            "id": 2,
+            "title": "Set up ESLint and Prettier for frontend code quality",
+            "description": "Configure ESLint and Prettier for code quality and consistent formatting in the frontend repository.",
+            "dependencies": [
+              1
+            ],
+            "details": "Install ESLint and Prettier as dev dependencies. Create configuration files (.eslintrc.js and .prettierrc) with appropriate rules for React development. Set up pre-commit hooks using husky to ensure code quality checks before commits. Configure VSCode settings to support the linting and formatting rules. Add npm scripts for linting and fixing code.",
+            "status": "pending",
+            "testStrategy": "Run linting commands to verify that ESLint correctly identifies code issues. Test that Prettier formats code according to the defined rules. Verify that pre-commit hooks prevent commits with linting errors."
+          },
+          {
+            "id": 3,
+            "title": "Initialize backend repository with Express",
+            "description": "Create and set up the backend repository with Node.js and Express framework.",
+            "dependencies": [],
+            "details": "Create a new repository for the backend. Initialize a new Node.js project with 'npm init -y'. Install Express and other core dependencies (cors, body-parser, etc.). Set up the basic folder structure according to section 5.4 of the PRD, including routes, controllers, models, and services directories. Create a server.js file as the entry point. Set up middleware for request parsing and CORS handling.",
+            "status": "pending",
+            "testStrategy": "Verify that the repository can be cloned and the server can be started with 'npm start'. Test that the server responds to basic HTTP requests. Ensure that middleware is correctly configured."
+          },
+          {
+            "id": 4,
+            "title": "Configure backend environment and ESLint",
+            "description": "Set up environment variables using dotenv and configure ESLint for the backend repository.",
+            "dependencies": [
+              3
+            ],
+            "details": "Install dotenv for environment variable management. Create .env and .env.example files with necessary configuration variables. Install and configure ESLint with appropriate rules for Node.js development. Set up .gitignore to exclude node_modules, .env, and other sensitive files. Create npm scripts for linting, development, and production environments. Configure nodemon for development auto-reloading.",
+            "status": "pending",
+            "testStrategy": "Test that environment variables are correctly loaded from .env files. Verify that ESLint identifies code issues according to the defined rules. Ensure that nodemon correctly restarts the server when files change."
+          },
+          {
+            "id": 5,
+            "title": "Set up PostgreSQL database and connection",
+            "description": "Install and configure PostgreSQL database and establish connection from the backend.",
+            "dependencies": [
+              4
+            ],
+            "details": "Install PostgreSQL locally or set up a Docker container. Create a development database for the project. Install pg or another PostgreSQL client for Node.js. Create a database connection module in the backend. Set up environment variables for database credentials. Implement connection pooling for efficient database access. Create a basic database schema with initial tables based on the data model.",
+            "status": "pending",
+            "testStrategy": "Test database connection from the backend. Verify that tables can be created and queried. Test connection pooling under load. Ensure that environment variables are correctly used for database configuration."
+          },
+          {
+            "id": 6,
+            "title": "Implement API endpoints structure",
+            "description": "Create the basic structure for API endpoints with Express routers and controllers.",
+            "dependencies": [
+              4
+            ],
+            "details": "Set up Express routers for different resource types (users, resumes, projects, etc.). Create controller files for handling request logic. Implement basic CRUD endpoint structures. Set up middleware for authentication placeholder. Create a consistent API response format. Implement error handling middleware. Document API endpoints with comments or basic Swagger annotations.",
+            "status": "pending",
+            "testStrategy": "Test API endpoint structure with mock data. Verify that routes are correctly mapped to controllers. Test error handling middleware with various error scenarios. Ensure that the API response format is consistent across endpoints."
+          },
+          {
+            "id": 7,
+            "title": "Configure cross-repository development workflow",
+            "description": "Set up the development workflow for working with both frontend and backend repositories simultaneously.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Create a development script to run both frontend and backend concurrently. Configure proxy settings in Vite to forward API requests to the backend during development. Set up CORS on the backend to accept requests from the frontend development server. Create documentation for the development workflow. Implement a basic health check endpoint and frontend component to verify connectivity between the two applications.",
+            "status": "pending",
+            "testStrategy": "Test that frontend and backend can be started together with a single command. Verify that API requests from the frontend are correctly proxied to the backend. Test CORS configuration with various request types. Ensure that the health check confirms connectivity between the applications."
+          },
+          {
+            "id": 8,
+            "title": "Create CI/CD pipeline configuration",
+            "description": "Set up continuous integration and deployment configuration for both repositories.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Create GitHub Actions or similar CI/CD configuration files for both repositories. Set up automated testing on pull requests. Configure linting checks as part of the CI process. Set up build processes for production deployment. Create deployment scripts or configurations for a target environment (e.g., Heroku, Vercel, or AWS). Document the CI/CD process and deployment strategy. Implement environment-specific configuration for development, testing, and production.",
+            "status": "pending",
+            "testStrategy": "Verify that CI pipelines run successfully on pull requests. Test that linting and testing are performed automatically. Ensure that builds are created correctly for production. Test deployment to a staging environment to verify the deployment process."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement user authentication system",
+        "description": "Create a secure authentication system with email/password registration, login, and password reset functionality.",
+        "details": "Implement the authentication system according to F-001 specifications. Use bcrypt for password hashing with a minimum of 10 rounds. Set up JWT or session-based authentication with HttpOnly, Secure cookies. Create endpoints for registration, login, logout, password reset, and email verification. Implement rate limiting for login attempts (max 5 per 15 minutes). Add CSRF protection on all authentication endpoints. Implement account lockout after 10 failed attempts. Set up email verification for new accounts using a service like SendGrid (optional for MVP). Create middleware for protecting authenticated routes.",
+        "testStrategy": "Test user registration with valid and invalid inputs. Verify email validation logic. Test login with correct and incorrect credentials. Verify that rate limiting works as expected. Test password reset flow. Verify that protected routes cannot be accessed without authentication. Test CSRF protection. Verify that passwords are properly hashed in the database.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Create database models and migrations",
+        "description": "Define the database models for User, Resume, and related entities, and set up initial migrations.",
+        "details": "Create ORM models for User, Resume, PersonalInfo, Experience, Education, Project, and Skill as defined in section 5.5 of the PRD. Use Sequelize (for SQL databases) or Mongoose (for MongoDB) to define the schemas. Implement proper relationships between models (one-to-many, many-to-many). Set up initial database migrations to create the tables/collections. Add indexes for frequently queried fields. Implement validation at the model level. Create seed data for development and testing purposes.",
+        "testStrategy": "Verify that all models are correctly defined with proper relationships. Test migrations to ensure they run without errors. Validate that constraints and indexes are properly created. Test model validation with valid and invalid data. Verify that seed data can be loaded successfully.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Develop resume dashboard UI",
+        "description": "Create the dashboard interface for managing multiple resumes with create, edit, duplicate, and delete functionality.",
+        "details": "Implement the dashboard UI according to F-002 specifications. Create a responsive grid layout for displaying resume cards. Each card should show a thumbnail, title, last modified date, and visibility status. Add actions for creating new resumes, editing existing ones, duplicating, and deleting. Implement visual indicators for public/private status. Create an empty state for new users with a prominent 'Create Resume' CTA. Use TailwindCSS for styling and Lucide icons for visual elements. Implement client-side routing using React Router.",
+        "testStrategy": "Test the dashboard rendering with various numbers of resumes (0, 1, many). Verify that all actions (create, edit, duplicate, delete) work correctly. Test responsive layout on different screen sizes. Verify that the empty state is displayed for new users. Test that clicking on a resume card navigates to the editor.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Build resume builder core structure",
+        "description": "Create the foundation for the resume builder interface with navigation between sections and form state management.",
+        "details": "Implement the core structure of the resume builder with a sidebar for section navigation, main area for form inputs, and optional right panel for live preview. Set up client-side routing or tab navigation between sections (Personal Info, Summary, Experience, Education, Projects, Skills). Implement form state management using React Hook Form with Zod validation or Redux Toolkit. Create a layout that supports both desktop and mobile views. Add auto-save functionality that triggers every 30 seconds. Implement basic error handling and loading states.",
+        "testStrategy": "Test navigation between different sections. Verify that form state is preserved when switching sections. Test auto-save functionality with network delays and failures. Verify that the layout is responsive on different screen sizes. Test form validation with valid and invalid inputs.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement personal information section",
+        "description": "Create the personal information form section for basic contact details and professional identity.",
+        "details": "Implement the personal information section according to F-003 specifications. Create form inputs for full name (required), professional title (required), email (required, validated), phone number (optional, validated format), location (optional), LinkedIn URL (optional, validated URL format), and portfolio/website URL (optional, validated URL format). Add a placeholder for profile photo upload (to be implemented later). Use React Hook Form for form management and Zod for validation. Implement real-time validation with helpful error messages. Create API endpoints for saving and retrieving personal information.",
+        "testStrategy": "Test form submission with valid and invalid inputs. Verify that validation works correctly for all fields. Test saving and retrieving data from the API. Verify that required fields cannot be left empty. Test URL validation for LinkedIn and portfolio links.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Develop professional summary section",
+        "description": "Create the professional summary section with text input and character count.",
+        "details": "Implement the professional summary section according to F-005 specifications. Create a textarea input for the summary with a recommended character count of 250-500. Add a character count indicator that updates in real-time. Implement form validation and state management. Create API endpoints for saving and retrieving the summary. Add a placeholder for the AI enhancement button (to be implemented later). Ensure the textarea is resizable for better user experience.",
+        "testStrategy": "Test form submission with valid inputs. Verify that the character count updates correctly. Test saving and retrieving data from the API. Verify that the textarea is properly resizable. Test with very long text to ensure proper handling.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Build work experience section",
+        "description": "Create the work experience section with CRUD operations for multiple job entries.",
+        "details": "Implement the work experience section according to F-006 specifications. Create a form for adding and editing work experiences with fields for company name (required), job title (required), location (optional), start date (required, date picker), end date (optional, date picker), 'Present' checkbox for current positions, and description (required). Implement CRUD operations for managing multiple entries. Add buttons for adding new experiences and removing existing ones. Create API endpoints for saving, retrieving, updating, and deleting experiences. Add placeholders for AI enhancement and reordering (to be implemented later).",
+        "testStrategy": "Test adding, editing, and deleting work experiences. Verify that validation works correctly for all fields. Test the 'Present' checkbox functionality. Test saving and retrieving data from the API. Verify that multiple experiences can be added and managed correctly.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement education section",
+        "description": "Create the education section with CRUD operations for multiple education entries.",
+        "details": "Implement the education section according to F-007 specifications. Create a form for adding and editing education entries with fields for institution name (required), degree/certification (required), field of study (optional), location (optional), graduation date (optional, date picker), GPA (optional), and description/achievements (optional). Implement CRUD operations for managing multiple entries. Add buttons for adding new education entries and removing existing ones. Create API endpoints for saving, retrieving, updating, and deleting education entries.",
+        "testStrategy": "Test adding, editing, and deleting education entries. Verify that validation works correctly for all fields. Test saving and retrieving data from the API. Verify that multiple education entries can be added and managed correctly.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Develop projects section",
+        "description": "Create the projects section with CRUD operations for multiple project entries.",
+        "details": "Implement the projects section according to F-008 specifications. Create a form for adding and editing projects with fields for project name (required), description (required), technologies used (optional, tags), URL/demo link (optional), and date/duration (optional). Implement CRUD operations for managing multiple entries. Add buttons for adding new projects and removing existing ones. Create API endpoints for saving, retrieving, updating, and deleting projects. Implement a tag input component for technologies used.",
+        "testStrategy": "Test adding, editing, and deleting projects. Verify that validation works correctly for all fields. Test the tag input component for technologies. Test saving and retrieving data from the API. Verify that multiple projects can be added and managed correctly.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Build skills section",
+        "description": "Create the skills section with functionality to add, categorize, and manage multiple skills.",
+        "details": "Implement the skills section according to F-009 specifications. Create a form for adding and managing skills with fields for skill name (required), category (optional), and proficiency level (optional). Implement functionality to add multiple skills and organize them by category. Create visual representation options (list, tags, bars) for displaying skills. Add buttons for adding new skills and removing existing ones. Create API endpoints for saving, retrieving, updating, and deleting skills.",
+        "testStrategy": "Test adding and removing skills. Verify that skills can be categorized correctly. Test different visual representation options. Test saving and retrieving data from the API. Verify that multiple skills can be added and managed correctly.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Design and implement first resume template",
+        "description": "Create the first professional resume template with responsive layout and proper formatting.",
+        "details": "Design and implement the 'Classic' template as specified in F-012. Create a responsive layout that works well on different screen sizes and for PDF export. Implement proper styling for all resume sections (personal info, summary, experience, education, projects, skills). Ensure the template is ATS-friendly with clean, semantic HTML. Use CSS variables for theming support (to be used with color customization later). Create a preview component that renders the resume with the selected template. Ensure proper page breaks for PDF export.",
+        "testStrategy": "Test the template rendering with various data combinations. Verify that the layout is responsive on different screen sizes. Test with missing data to ensure graceful handling. Verify that the template is visually consistent with the design specifications. Test print preview to ensure proper page breaks.",
+        "priority": "high",
+        "dependencies": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement PDF generation and download",
+        "description": "Create functionality to generate and download resumes as PDF files.",
+        "details": "Implement PDF generation according to F-014 specifications. Integrate a PDF generation library (Puppeteer, PDFKit, or html2pdf) on the backend. Create an API endpoint for generating PDFs from resume data. Implement proper page breaks and formatting for the PDF output. Ensure fonts are embedded for consistent rendering. Add metadata (title, author) to the generated PDF. Set the filename format to '[FirstName]_[LastName]_Resume.pdf'. Add a download button in the UI that triggers the PDF generation and download.",
+        "testStrategy": "Test PDF generation with various data combinations. Verify that the PDF output matches the preview. Test with very long content to ensure proper page breaks. Verify that fonts are rendered consistently. Test the download functionality in different browsers. Verify that the PDF is ATS-friendly.",
+        "priority": "high",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Integrate Google Gemini AI service",
+        "description": "Set up the backend integration with Google Gemini API for AI-powered content enhancement.",
+        "details": "Implement the AI service integration according to F-010 specifications. Create an aiService.js module in the backend services layer. Set up secure API key management using environment variables. Implement functions for enhancing professional summaries and work experience descriptions. Create API endpoints for AI enhancement requests. Implement rate limiting (max 10 requests per user per minute) and timeout handling (30-second max wait). Add error handling and graceful degradation if the AI service is unavailable. Configure the AI to generate professional, confident, achievement-oriented content in active voice.",
+        "testStrategy": "Test AI enhancement with various input texts. Verify that rate limiting works as expected. Test timeout handling. Verify that the API key is securely stored and not exposed to the frontend. Test error handling when the AI service is unavailable. Verify that the enhanced content meets the tone and style requirements.",
+        "priority": "high",
+        "dependencies": [
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Develop AI enhancement UI components",
+        "description": "Create the user interface for AI-powered content enhancement with side-by-side comparison.",
+        "details": "Implement the AI enhancement UI according to F-010 specifications. Add 'AI Enhance' buttons to the summary and experience sections. Create a modal or inline component for displaying the original text alongside the AI-enhanced version. Implement loading states during AI processing. Add buttons for accepting, rejecting, or regenerating the AI suggestions. Handle API calls to the backend AI service. Implement error handling and user feedback for failed requests. Ensure the UI is responsive and accessible.",
+        "testStrategy": "Test the AI enhancement UI with various scenarios (success, loading, error). Verify that the side-by-side comparison displays correctly. Test accepting, rejecting, and regenerating AI suggestions. Verify that loading states are properly displayed. Test error handling with simulated API failures.",
+        "priority": "high",
+        "dependencies": [
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement profile photo upload with ImageKit",
+        "description": "Create functionality for uploading and managing profile photos with background removal option.",
+        "details": "Implement profile photo upload according to F-004 specifications. Integrate with ImageKit for image hosting and transformations. Create a file upload component that accepts JPEG and PNG files up to 5MB. Implement client-side validation for file type and size. Add a background removal toggle that applies the 'tr=bg-transparent' transformation. Create an image cropping/positioning preview. Implement responsive image optimization. Create API endpoints for uploading images to ImageKit and storing the URL in the database. Add security measures for validating uploads and scanning for malicious content.",
+        "testStrategy": "Test file upload with valid and invalid files. Verify that file type and size validation works correctly. Test the background removal toggle. Verify that images are properly stored in ImageKit and the URL is saved in the database. Test the image cropping/positioning preview. Verify that security measures prevent malicious file uploads.",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Design and implement additional resume templates",
+        "description": "Create 2-3 additional resume templates with distinct designs for different professional contexts.",
+        "details": "Design and implement additional templates as specified in F-012: 'Modern' (clean, minimalist), 'Creative' (design-forward), and 'Technical' (emphasizes skills and projects). Create responsive layouts for each template. Implement proper styling and formatting for all resume sections. Ensure templates are ATS-friendly with clean, semantic HTML. Use CSS variables for theming support. Create a template selection UI that shows previews and allows switching between templates. Ensure the selected template persists with the resume.",
+        "testStrategy": "Test each template with various data combinations. Verify that layouts are responsive on different screen sizes. Test the template selection UI. Verify that switching templates works correctly and updates the preview. Test with missing data to ensure graceful handling. Verify that templates are visually distinct and match their design specifications.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement color theme customization",
+        "description": "Add functionality for users to customize the accent color of their resume.",
+        "details": "Implement color theme customization according to F-013 specifications. Create a color picker component or preset palette with 8-12 professional colors. Implement real-time preview of color changes. Apply selected colors to headers, accents, and section dividers in the resume templates. Ensure color selections maintain readability and contrast (WCAG AA compliance). Create API endpoints for saving and retrieving color preferences. Ensure the color selection persists with the resume.",
+        "testStrategy": "Test the color picker or palette selection. Verify that color changes are reflected in real-time. Test saving and retrieving color preferences from the API. Verify that all templates properly apply the selected color. Test contrast ratios to ensure accessibility compliance. Test with various color selections to ensure visual consistency.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Develop PDF resume upload and parsing",
+        "description": "Create functionality for uploading existing PDF resumes and automatically populating resume fields.",
+        "details": "Implement PDF upload and parsing according to F-011 specifications. Create a file upload interface that accepts PDF files up to 10MB. Implement client-side validation for file type and size. Integrate a PDF parsing library (pdf-parse or similar) on the backend. Implement intelligent field mapping to resume sections using NLP or pattern matching. Add confidence scoring for extracted data. Create a review and edit interface for users to correct extraction errors. Implement proper error handling for unparseable PDFs. Store the original PDF temporarily and delete after successful import.",
+        "testStrategy": "Test file upload with various PDF formats. Verify that parsing works correctly for common resume layouts. Test the review and edit interface. Verify that extraction errors can be corrected. Test with complex layouts and image-based PDFs to understand limitations. Verify that temporary files are properly deleted after import.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement public/private visibility toggle",
+        "description": "Add functionality to control resume visibility and generate shareable links.",
+        "details": "Implement public/private visibility according to F-015 specifications. Create a toggle switch for public/private status. Generate a unique, unguessable URL (UUID or similar) for public resumes. Format the URL as '/public/:resumeId'. Add a copy link button with confirmation. Create API endpoints for toggling visibility and generating public links. Implement SEO-friendly meta tags for public resume pages. Ensure public pages are read-only (no editing). Add an option to disable public links (revert to private).",
+        "testStrategy": "Test toggling between public and private status. Verify that public URLs are unique and unguessable. Test the copy link button. Verify that public resumes can be viewed without authentication. Test disabling public links. Verify that SEO meta tags are properly generated. Test that public pages are read-only.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Create public resume view page",
+        "description": "Develop a clean, read-only view for public resume links.",
+        "details": "Implement the public resume view according to F-016 specifications. Create a clean, distraction-free layout for viewing public resumes. Render the resume with the selected template and colors. Ensure no authentication is required to view public resumes. Remove all UI elements for editing. Add an option to download the resume as PDF from the public view. Implement basic analytics for view count (optional). Create a 404 error page for invalid or private resume IDs. Add a 'Create your own resume' CTA to drive user acquisition.",
+        "testStrategy": "Test viewing public resumes with various templates and data. Verify that no authentication is required. Test the PDF download option from public view. Verify that editing controls are not present. Test with invalid or private resume IDs to ensure proper 404 handling. Verify that view count is incremented correctly (if implemented).",
+        "priority": "medium",
+        "dependencies": [
+          20,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Implement drag-and-drop reordering",
+        "description": "Add drag-and-drop functionality for reordering entries in experience, education, projects, and skills sections.",
+        "details": "Implement drag-and-drop reordering for resume sections. Integrate a drag-and-drop library (react-beautiful-dnd or similar). Add visual indicators for drag handles and drop targets. Implement reordering logic for experience, education, projects, and skills entries. Update the order field in the database when items are reordered. Ensure the UI provides feedback during dragging operations. Make the feature accessible with keyboard alternatives. Create API endpoints for updating the order of entries.",
+        "testStrategy": "Test dragging and dropping items within each section. Verify that the order is preserved after saving. Test keyboard alternatives for accessibility. Verify that visual indicators provide clear feedback. Test with touch devices to ensure mobile compatibility. Verify that the database is correctly updated when items are reordered.",
+        "priority": "low",
+        "dependencies": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement auto-save functionality",
+        "description": "Add automatic saving of resume data to prevent data loss.",
+        "details": "Implement auto-save functionality as specified in UX-004. Create a mechanism to detect form changes. Trigger save operations automatically every 30 seconds if changes are detected. Implement debouncing to prevent excessive API calls. Add visual indicators for saving status (saving, saved, error). Handle network failures gracefully with retry logic. Ensure auto-save doesn't interrupt user input. Create a central service for managing auto-save across all resume sections.",
+        "testStrategy": "Test auto-save with various change scenarios. Verify that changes are saved correctly after the specified interval. Test with network interruptions to ensure data isn't lost. Verify that visual indicators correctly reflect the saving status. Test that auto-save doesn't interfere with user input. Verify that debouncing prevents excessive API calls.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Implement security hardening measures",
+        "description": "Apply comprehensive security measures to protect user data and prevent common vulnerabilities.",
+        "details": "Implement security hardening as specified in SEC-001 through SEC-004. Configure security headers (Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, Referrer-Policy). Implement CORS configuration with whitelisted origins. Add input sanitization for all user inputs to prevent XSS. Use parameterized queries or ORM to prevent SQL injection. Implement rate limiting on all API endpoints. Add file upload validation for type, size, and malicious content. Ensure all API endpoints have proper authentication and authorization checks. Configure secure cookie settings (HttpOnly, Secure, SameSite). Implement proper error handling that doesn't expose sensitive information.",
+        "testStrategy": "Perform security testing with tools like OWASP ZAP or Burp Suite. Verify that all security headers are properly configured. Test CORS with various origins. Attempt XSS and SQL injection attacks to verify protection. Test rate limiting by exceeding the defined limits. Verify that file upload validation prevents malicious files. Test authentication and authorization on all endpoints. Verify that error messages don't expose sensitive information.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Implement performance optimization",
+        "description": "Optimize the application for speed, responsiveness, and scalability.",
+        "details": "Implement performance optimizations as specified in PERF-001 and PERF-002. Set up code splitting and lazy loading for the frontend. Implement image optimization and lazy loading. Configure caching for static assets. Optimize database queries with proper indexes and query analysis. Implement database connection pooling. Set up asynchronous processing for long-running tasks (PDF generation, AI calls). Configure a CDN for static assets and public resume pages. Implement monitoring and alerting for performance degradation. Minimize API calls by batching where appropriate. Ensure the application is stateless for horizontal scaling.",
+        "testStrategy": "Measure performance metrics before and after optimization (page load time, time to interactive, API response time). Use tools like Lighthouse or WebPageTest for frontend performance testing. Test database query performance with explain plans. Verify that code splitting reduces initial load size. Test CDN configuration for static assets. Verify that asynchronous processing works correctly for long-running tasks. Test the application under load to identify bottlenecks.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-28T15:44:54.517Z",
+      "updated": "2025-10-28T15:44:54.517Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

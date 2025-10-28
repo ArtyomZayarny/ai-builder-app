@@ -1,0 +1,11 @@
+# Task ID: 20
+# Title: Implement public/private visibility toggle
+# Status: pending
+# Dependencies: 12
+# Priority: medium
+# Description: Add functionality to control resume visibility and generate shareable links.
+# Details:
+Implement public/private visibility according to F-015 specifications. Create a toggle switch for public/private status. Generate a unique, unguessable URL (UUID or similar) for public resumes. Format the URL as '/public/:resumeId'. Add a copy link button with confirmation. Create API endpoints for toggling visibility and generating public links. Implement SEO-friendly meta tags for public resume pages. Ensure public pages are read-only (no editing). Add an option to disable public links (revert to private).
+
+# Test Strategy:
+Test toggling between public and private status. Verify that public URLs are unique and unguessable. Test the copy link button. Verify that public resumes can be viewed without authentication. Test disabling public links. Verify that SEO meta tags are properly generated. Test that public pages are read-only.

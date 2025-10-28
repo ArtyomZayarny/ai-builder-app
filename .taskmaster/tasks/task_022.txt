@@ -1,0 +1,11 @@
+# Task ID: 22
+# Title: Implement drag-and-drop reordering
+# Status: pending
+# Dependencies: 8, 9, 10, 11
+# Priority: low
+# Description: Add drag-and-drop functionality for reordering entries in experience, education, projects, and skills sections.
+# Details:
+Implement drag-and-drop reordering for resume sections. Integrate a drag-and-drop library (react-beautiful-dnd or similar). Add visual indicators for drag handles and drop targets. Implement reordering logic for experience, education, projects, and skills entries. Update the order field in the database when items are reordered. Ensure the UI provides feedback during dragging operations. Make the feature accessible with keyboard alternatives. Create API endpoints for updating the order of entries.
+
+# Test Strategy:
+Test dragging and dropping items within each section. Verify that the order is preserved after saving. Test keyboard alternatives for accessibility. Verify that visual indicators provide clear feedback. Test with touch devices to ensure mobile compatibility. Verify that the database is correctly updated when items are reordered.

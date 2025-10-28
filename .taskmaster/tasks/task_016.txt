@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Implement profile photo upload with ImageKit
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Create functionality for uploading and managing profile photos with background removal option.
+# Details:
+Implement profile photo upload according to F-004 specifications. Integrate with ImageKit for image hosting and transformations. Create a file upload component that accepts JPEG and PNG files up to 5MB. Implement client-side validation for file type and size. Add a background removal toggle that applies the 'tr=bg-transparent' transformation. Create an image cropping/positioning preview. Implement responsive image optimization. Create API endpoints for uploading images to ImageKit and storing the URL in the database. Add security measures for validating uploads and scanning for malicious content.
+
+# Test Strategy:
+Test file upload with valid and invalid files. Verify that file type and size validation works correctly. Test the background removal toggle. Verify that images are properly stored in ImageKit and the URL is saved in the database. Test the image cropping/positioning preview. Verify that security measures prevent malicious file uploads.

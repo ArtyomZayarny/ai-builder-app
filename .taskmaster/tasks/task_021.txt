@@ -1,0 +1,11 @@
+# Task ID: 21
+# Title: Create public resume view page
+# Status: pending
+# Dependencies: 20, 13
+# Priority: medium
+# Description: Develop a clean, read-only view for public resume links.
+# Details:
+Implement the public resume view according to F-016 specifications. Create a clean, distraction-free layout for viewing public resumes. Render the resume with the selected template and colors. Ensure no authentication is required to view public resumes. Remove all UI elements for editing. Add an option to download the resume as PDF from the public view. Implement basic analytics for view count (optional). Create a 404 error page for invalid or private resume IDs. Add a 'Create your own resume' CTA to drive user acquisition.
+
+# Test Strategy:
+Test viewing public resumes with various templates and data. Verify that no authentication is required. Test the PDF download option from public view. Verify that editing controls are not present. Test with invalid or private resume IDs to ensure proper 404 handling. Verify that view count is incremented correctly (if implemented).

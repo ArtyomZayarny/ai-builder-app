@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Integrate Google Gemini AI service
+# Status: pending
+# Dependencies: 7, 8
+# Priority: high
+# Description: Set up the backend integration with Google Gemini API for AI-powered content enhancement.
+# Details:
+Implement the AI service integration according to F-010 specifications. Create an aiService.js module in the backend services layer. Set up secure API key management using environment variables. Implement functions for enhancing professional summaries and work experience descriptions. Create API endpoints for AI enhancement requests. Implement rate limiting (max 10 requests per user per minute) and timeout handling (30-second max wait). Add error handling and graceful degradation if the AI service is unavailable. Configure the AI to generate professional, confident, achievement-oriented content in active voice.
+
+# Test Strategy:
+Test AI enhancement with various input texts. Verify that rate limiting works as expected. Test timeout handling. Verify that the API key is securely stored and not exposed to the frontend. Test error handling when the AI service is unavailable. Verify that the enhanced content meets the tone and style requirements.

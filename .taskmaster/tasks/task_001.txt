@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Set up project structure and environment
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Initialize the project repositories for both frontend and backend, configure build tools, and establish the development environment.
+# Details:
+Create two repositories: one for the React frontend and one for the Express backend. For the frontend, use Vite as the build tool with React 18+. Set up ESLint and Prettier for code quality. For the backend, initialize a Node.js project with Express, configure ESLint, and set up environment variables using dotenv. Create a comprehensive .gitignore file for both repositories. Establish the folder structure as outlined in section 5.4 of the PRD. Set up a development database (PostgreSQL recommended).
+
+# Test Strategy:
+Verify that both repositories can be cloned and run locally. Ensure that the development environment variables are properly loaded. Test that the frontend can make API calls to the backend. Verify that the database connection is working.
