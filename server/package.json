@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "migrate": "node db/migrations/migrate.js",
+    "seed": "node db/seeds/seed.js",
+    "db:reset": "npm run migrate && npm run seed",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.js\"",
@@ -17,6 +20,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@resume-builder/shared": "*",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

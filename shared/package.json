@@ -1,0 +1,15 @@
+{
+  "name": "@resume-builder/shared",
+  "version": "1.0.0",
+  "description": "Shared validation schemas and types for AI Resume Builder",
+  "type": "module",
+  "main": "schemas/index.js",
+  "exports": {
+    ".": "./schemas/index.js",
+    "./schemas/*": "./schemas/*.js"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}
+
