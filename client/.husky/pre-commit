@@ -1,1 +1,5 @@
-npm test
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged (ESLint, Prettier, TypeScript check)
+npm run lint-staged

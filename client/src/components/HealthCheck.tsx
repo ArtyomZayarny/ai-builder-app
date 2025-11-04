@@ -1,17 +1,32 @@
 import { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { API, BACKEND_URL } from '../config';
 
+interface HealthData {
+  status: string;
+  message: string;
+  database?: string;
+  timestamp: string;
+}
+
+interface HealthStatus {
+  loading: boolean;
+  data: HealthData | null;
+  error: string | null;
+}
+
 export default function HealthCheck() {
-  const [status, setStatus] = useState({ loading: true, data: null, error: null });
+  const [status, setStatus] = useState<HealthStatus>({ loading: true, data: null, error: null });
 
   useEffect(() => {
     const checkHealth = async () => {
       try {
         const response = await fetch(API.HEALTH);
-        const data = await response.json();
+        const data: HealthData = await response.json();
         setStatus({ loading: false, data, error: null });
       } catch (error) {
-        setStatus({ loading: false, data: null, error: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+        setStatus({ loading: false, data: null, error: errorMessage });
       }
     };
 
@@ -40,6 +55,10 @@ export default function HealthCheck() {
     );
   }
 
+  if (!status.data) {
+    return null;
+  }
+
   return (
     <div style={styles.container}>
       <div style={{ ...styles.card, ...styles.success }}>
@@ -66,7 +85,7 @@ export default function HealthCheck() {
   );
 }
 
-const styles = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: 'flex',
     justifyContent: 'center',

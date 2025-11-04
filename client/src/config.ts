@@ -9,7 +9,7 @@ const isProduction = import.meta.env.MODE === 'production';
 // Backend URL configuration
 const BACKEND_URLS = {
   development: 'http://localhost:3001',
-  production: import.meta.env.VITE_BACKEND_URL,
+  production: import.meta.env.VITE_BACKEND_URL as string | undefined,
 };
 
 // Get the backend URL from environment variable or use defaults
@@ -31,9 +31,9 @@ export const API = {
   RESUMES: {
     LIST: `${BACKEND_URL}/api/resumes`,
     CREATE: `${BACKEND_URL}/api/resumes`,
-    GET: id => `${BACKEND_URL}/api/resumes/${id}`,
-    UPDATE: id => `${BACKEND_URL}/api/resumes/${id}`,
-    DELETE: id => `${BACKEND_URL}/api/resumes/${id}`,
+    GET: (id: number | string) => `${BACKEND_URL}/api/resumes/${id}`,
+    UPDATE: (id: number | string) => `${BACKEND_URL}/api/resumes/${id}`,
+    DELETE: (id: number | string) => `${BACKEND_URL}/api/resumes/${id}`,
   },
 };
 
