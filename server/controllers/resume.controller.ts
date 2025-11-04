@@ -179,6 +179,42 @@ class ResumeController {
     await resumeService.deleteProject(req.params.id, req.params.projectId);
     res.status(204).send();
   });
+
+  /**
+   * Get all experiences
+   * GET /api/resumes/:id/experiences
+   */
+  getExperiences = asyncHandler(async (req: Request, res: Response) => {
+    const experiences = await resumeService.getExperiences(req.params.id);
+    res.json(successResponse(experiences, 'Experiences retrieved successfully'));
+  });
+
+  /**
+   * Create experience
+   * POST /api/resumes/:id/experiences
+   */
+  createExperience = asyncHandler(async (req: Request, res: Response) => {
+    const experience = await resumeService.createExperience(req.params.id, req.body);
+    res.status(201).json(successResponse(experience, 'Experience created successfully'));
+  });
+
+  /**
+   * Update experience
+   * PUT /api/resumes/:id/experiences/:expId
+   */
+  updateExperience = asyncHandler(async (req: Request, res: Response) => {
+    const experience = await resumeService.updateExperience(req.params.id, req.params.expId, req.body);
+    res.json(successResponse(experience, 'Experience updated successfully'));
+  });
+
+  /**
+   * Delete experience
+   * DELETE /api/resumes/:id/experiences/:expId
+   */
+  deleteExperience = asyncHandler(async (req: Request, res: Response) => {
+    await resumeService.deleteExperience(req.params.id, req.params.expId);
+    res.status(204).send();
+  });
 }
 
 export default new ResumeController();

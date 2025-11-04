@@ -1009,6 +1009,261 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Experiences CRUD ====================
+  describe('Experiences CRUD', () => {
+    let testResumeId: number;
+    let testExpId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for experiences tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Experiences Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    describe('GET /api/resumes/:id/experiences', () => {
+      it('should return empty array for resume without experiences', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/experiences`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toEqual([]);
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app).get('/api/resumes/99999/experiences').expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('POST /api/resumes/:id/experiences', () => {
+      it('should create current experience (isCurrent=true, no endDate)', async () => {
+        const experience = {
+          company: 'Tech Corp',
+          role: 'Senior Developer',
+          location: 'San Francisco, CA',
+          startDate: '2021-03-01',
+          isCurrent: true,
+          description: 'Leading development of microservices architecture',
+          order: 0,
+        };
+
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send(experience)
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.company).toBe(experience.company);
+        expect(response.body.data.is_current).toBe(true);
+        expect(response.body.data.end_date).toBeNull();
+        expect(response.body.message).toBe('Experience created successfully');
+
+        testExpId = response.body.data.id; // Save for update/delete tests
+      });
+
+      it('should create past experience (isCurrent=false, with endDate)', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({
+            company: 'Previous Company',
+            role: 'Junior Developer',
+            startDate: '2019-01-01',
+            endDate: '2020-12-31',
+            isCurrent: false,
+            description: 'Worked on various web applications',
+          })
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.is_current).toBe(false);
+        // Date is returned, just verify it exists (not null)
+        expect(response.body.data.end_date).toBeTruthy();
+      });
+
+      it('should fail if isCurrent=false but no endDate', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({
+            company: 'Test Company',
+            role: 'Test Role',
+            startDate: '2020-01-01',
+            isCurrent: false,
+            description: 'Test description for validation',
+          })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should fail if isCurrent=true with endDate', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({
+            company: 'Test Company',
+            role: 'Test Role',
+            startDate: '2020-01-01',
+            endDate: '2023-01-01',
+            isCurrent: true,
+            description: 'Test description for validation',
+          })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should fail with missing required fields', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({ company: 'Only Company' })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .post('/api/resumes/99999/experiences')
+          .send({
+            company: 'Test Corp',
+            role: 'Developer',
+            startDate: '2020-01-01',
+            isCurrent: true,
+            description: 'Test description for testing',
+          })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('PUT /api/resumes/:id/experiences/:expId', () => {
+      it('should update experience with valid data', async () => {
+        const update = {
+          company: 'Tech Corp (Updated)',
+          role: 'Lead Senior Developer',
+        };
+
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/experiences/${testExpId}`)
+          .send(update)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.company).toBe(update.company);
+        expect(response.body.data.role).toBe(update.role);
+        expect(response.body.message).toBe('Experience updated successfully');
+      });
+
+      it('should update only provided fields', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/experiences/${testExpId}`)
+          .send({ location: 'New York, NY' })
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.location).toBe('New York, NY');
+      });
+
+      it('should return 404 for non-existent experience', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/experiences/99999`)
+          .send({ company: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Experience not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/99999/experiences/1`)
+          .send({ company: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('DELETE /api/resumes/:id/experiences/:expId', () => {
+      it('should return 404 for non-existent experience', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/${testResumeId}/experiences/99999`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Experience not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/99999/experiences/1`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+
+      it('should delete experience', async () => {
+        await request(app)
+          .delete(`/api/resumes/${testResumeId}/experiences/${testExpId}`)
+          .expect(204);
+      });
+    });
+
+    describe('GET /api/resumes/:id/experiences - with data', () => {
+      beforeAll(async () => {
+        // Create some test experiences
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({
+            company: 'Company A',
+            role: 'Software Engineer',
+            startDate: '2020-01-01',
+            isCurrent: true,
+            description: 'Current position at Company A',
+            order: 0,
+          });
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/experiences`)
+          .send({
+            company: 'Company B',
+            role: 'Junior Developer',
+            startDate: '2018-06-01',
+            endDate: '2019-12-31',
+            isCurrent: false,
+            description: 'Previous position at Company B',
+            order: 1,
+          });
+      });
+
+      it('should return all experiences for resume', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/experiences`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.length).toBeGreaterThanOrEqual(2);
+        expect(response.body.data[0]).toHaveProperty('company');
+        expect(response.body.data[0]).toHaveProperty('is_current');
+      });
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {

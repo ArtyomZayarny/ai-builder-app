@@ -83,8 +83,8 @@ export const ExperienceCreateSchema = ExperienceBaseSchema.omit({ id: true }).re
   }
 );
 
-// For updating (all fields optional except ID)
-export const ExperienceUpdateSchema = ExperienceBaseSchema.partial().required({ id: true });
+// For updating (all fields optional, ID not in body - it's in URL params)
+export const ExperienceUpdateSchema = ExperienceBaseSchema.omit({ id: true }).partial();
 
 // TypeScript types
 export type Experience = z.infer<typeof ExperienceSchema>;

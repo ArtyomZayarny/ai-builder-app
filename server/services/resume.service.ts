@@ -467,6 +467,111 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Get all experiences for a resume
+   */
+  async getExperiences(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM experiences 
+       WHERE resume_id = $1 
+       ORDER BY order_index ASC`,
+      [resumeId]
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * Create new experience
+   */
+  async createExperience(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `INSERT INTO experiences (resume_id, company, role, location, start_date, end_date, is_current, description, order_index)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        resumeId,
+        data.company,
+        data.role,
+        data.location || null,
+        data.startDate,
+        data.endDate || null,
+        data.isCurrent || false,
+        data.description,
+        data.order || 0,
+      ]
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * Update experience
+   */
+  async updateExperience(resumeId: number | string, expId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE experiences 
+       SET company = COALESCE($1, company),
+           role = COALESCE($2, role),
+           location = COALESCE($3, location),
+           start_date = COALESCE($4, start_date),
+           end_date = COALESCE($5, end_date),
+           is_current = COALESCE($6, is_current),
+           description = COALESCE($7, description),
+           order_index = COALESCE($8, order_index)
+       WHERE id = $9 AND resume_id = $10
+       RETURNING *`,
+      [
+        data.company,
+        data.role,
+        data.location,
+        data.startDate,
+        data.endDate,
+        data.isCurrent,
+        data.description,
+        data.order,
+        expId,
+        resumeId,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Experience');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Delete experience
+   */
+  async deleteExperience(resumeId: number | string, expId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `DELETE FROM experiences 
+       WHERE id = $1 AND resume_id = $2
+       RETURNING id`,
+      [expId, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Experience');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();
