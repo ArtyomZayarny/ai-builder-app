@@ -71,6 +71,42 @@ class ResumeController {
     const summary = await resumeService.updateSummary(req.params.id, req.body);
     res.json(successResponse(summary, 'Summary updated successfully'));
   });
+
+  /**
+   * Get all skills
+   * GET /api/resumes/:id/skills
+   */
+  getSkills = asyncHandler(async (req: Request, res: Response) => {
+    const skills = await resumeService.getSkills(req.params.id);
+    res.json(successResponse(skills, 'Skills retrieved successfully'));
+  });
+
+  /**
+   * Create skill
+   * POST /api/resumes/:id/skills
+   */
+  createSkill = asyncHandler(async (req: Request, res: Response) => {
+    const skill = await resumeService.createSkill(req.params.id, req.body);
+    res.status(201).json(successResponse(skill, 'Skill created successfully'));
+  });
+
+  /**
+   * Update skill
+   * PUT /api/resumes/:id/skills/:skillId
+   */
+  updateSkill = asyncHandler(async (req: Request, res: Response) => {
+    const skill = await resumeService.updateSkill(req.params.id, req.params.skillId, req.body);
+    res.json(successResponse(skill, 'Skill updated successfully'));
+  });
+
+  /**
+   * Delete skill
+   * DELETE /api/resumes/:id/skills/:skillId
+   */
+  deleteSkill = asyncHandler(async (req: Request, res: Response) => {
+    await resumeService.deleteSkill(req.params.id, req.params.skillId);
+    res.status(204).send();
+  });
 }
 
 export default new ResumeController();

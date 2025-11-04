@@ -19,8 +19,8 @@ export const SkillSchema = SkillBaseSchema;
 // For creating new skill (no ID)
 export const SkillCreateSchema = SkillBaseSchema.omit({ id: true });
 
-// For updating (all fields optional except ID)
-export const SkillUpdateSchema = SkillBaseSchema.partial().required({ id: true });
+// For updating (all fields optional, ID not in body - it's in URL params)
+export const SkillUpdateSchema = SkillBaseSchema.omit({ id: true }).partial();
 
 // TypeScript types
 export type Skill = z.infer<typeof SkillSchema>;

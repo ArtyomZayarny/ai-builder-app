@@ -184,6 +184,85 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Get all skills for a resume
+   */
+  async getSkills(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM skills 
+       WHERE resume_id = $1 
+       ORDER BY order_index ASC`,
+      [resumeId]
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * Create new skill
+   */
+  async createSkill(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `INSERT INTO skills (resume_id, name, category, order_index)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [resumeId, data.name, data.category || null, data.order || 0]
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * Update skill
+   */
+  async updateSkill(resumeId: number | string, skillId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE skills 
+       SET name = COALESCE($1, name),
+           category = COALESCE($2, category),
+           order_index = COALESCE($3, order_index)
+       WHERE id = $4 AND resume_id = $5
+       RETURNING *`,
+      [data.name, data.category, data.order, skillId, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Skill');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Delete skill
+   */
+  async deleteSkill(resumeId: number | string, skillId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `DELETE FROM skills 
+       WHERE id = $1 AND resume_id = $2
+       RETURNING id`,
+      [skillId, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Skill');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();

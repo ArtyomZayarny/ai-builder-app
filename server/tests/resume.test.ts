@@ -408,6 +408,193 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Skills CRUD ====================
+  describe('Skills CRUD', () => {
+    let testResumeId: number;
+    let testSkillId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for skills tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Skills Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    describe('GET /api/resumes/:id/skills', () => {
+      it('should return empty array for resume without skills', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/skills`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toEqual([]);
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app).get('/api/resumes/99999/skills').expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('POST /api/resumes/:id/skills', () => {
+      it('should create skill with valid data', async () => {
+        const skill = {
+          name: 'React',
+          category: 'Frontend',
+          order: 0,
+        };
+
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/skills`)
+          .send(skill)
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe(skill.name);
+        expect(response.body.data.category).toBe(skill.category);
+        expect(response.body.message).toBe('Skill created successfully');
+
+        testSkillId = response.body.data.id; // Save for update/delete tests
+      });
+
+      it('should create skill with only required field (name)', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/skills`)
+          .send({ name: 'Node.js' })
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe('Node.js');
+      });
+
+      it('should fail with missing name', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/skills`)
+          .send({ category: 'Backend' })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .post('/api/resumes/99999/skills')
+          .send({ name: 'Test Skill' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('PUT /api/resumes/:id/skills/:skillId', () => {
+      it('should update skill with valid data', async () => {
+        const update = {
+          name: 'React.js',
+          category: 'Frontend Frameworks',
+        };
+
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/skills/${testSkillId}`)
+          .send(update)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe(update.name);
+        expect(response.body.data.category).toBe(update.category);
+        expect(response.body.message).toBe('Skill updated successfully');
+      });
+
+      it('should update only provided fields', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/skills/${testSkillId}`)
+          .send({ name: 'ReactJS' })
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe('ReactJS');
+      });
+
+      it('should return 404 for non-existent skill', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/skills/99999`)
+          .send({ name: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Skill not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/99999/skills/1`)
+          .send({ name: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('DELETE /api/resumes/:id/skills/:skillId', () => {
+      it('should return 404 for non-existent skill', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/${testResumeId}/skills/99999`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Skill not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/99999/skills/1`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+
+      it('should delete skill', async () => {
+        await request(app)
+          .delete(`/api/resumes/${testResumeId}/skills/${testSkillId}`)
+          .expect(204);
+      });
+    });
+
+    describe('GET /api/resumes/:id/skills - with data', () => {
+      beforeAll(async () => {
+        // Create some test skills
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/skills`)
+          .send({ name: 'TypeScript', category: 'Languages', order: 0 });
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/skills`)
+          .send({ name: 'PostgreSQL', category: 'Database', order: 1 });
+      });
+
+      it('should return all skills for resume', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/skills`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.length).toBeGreaterThanOrEqual(2);
+        expect(response.body.data[0]).toHaveProperty('name');
+        expect(response.body.data[0]).toHaveProperty('category');
+      });
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {

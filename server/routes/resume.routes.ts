@@ -9,7 +9,9 @@ import {
   ResumeCreateSchema, 
   ResumeUpdateSchema,
   PersonalInfoUpdateSchema,
-  SummarySchema
+  SummarySchema,
+  SkillCreateSchema,
+  SkillUpdateSchema
 } from '@resume-builder/shared';
 
 const router = express.Router();
@@ -26,6 +28,12 @@ router.put('/:id/personal-info', validate(PersonalInfoUpdateSchema), resumeContr
 
 // Summary (content is required - single field, no partial update)
 router.put('/:id/summary', validate(SummarySchema), resumeController.updateSummary);
+
+// Skills CRUD
+router.get('/:id/skills', resumeController.getSkills);
+router.post('/:id/skills', validate(SkillCreateSchema), resumeController.createSkill);
+router.put('/:id/skills/:skillId', validate(SkillUpdateSchema), resumeController.updateSkill);
+router.delete('/:id/skills/:skillId', resumeController.deleteSkill);
 
 export default router;
 
