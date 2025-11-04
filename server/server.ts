@@ -57,7 +57,9 @@ app.get('/api/health', async (_req: Request, res: Response) => {
 if (process.env.NODE_ENV !== 'production') {
   (async () => {
     try {
+      // @ts-ignore - Optional dev dependency, not available in production
       const { apiReference } = await import('@scalar/express-api-reference');
+      // @ts-ignore - Optional dev file, not compiled in production
       const { openApiDocument } = await import('./docs/openapi.js');
       
       app.use(
