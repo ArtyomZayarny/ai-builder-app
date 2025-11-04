@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { Plus, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
-import { getAllResumes, createResume, deleteResume, duplicateResume } from '../services/resumeApi';
+import { getAllResumes, deleteResume, duplicateResume } from '../services/resumeApi';
 import type { Resume } from '../types/resume';
 
 export default function Dashboard() {
@@ -36,21 +36,9 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateResume = async () => {
-    try {
-      const newResume = await createResume({
-        title: 'My Resume',
-        template: 'classic',
-        accentColor: '#3B82F6',
-      });
-
-      // Navigate to editor
-      navigate(`/resume/${newResume.id}`);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
-      console.error('Error creating resume:', err);
-    }
+  const handleCreateResume = () => {
+    // Navigate to new resume editor (no DB record created yet)
+    navigate('/resume/new');
   };
 
   const handleDeleteResume = async (id: number) => {
