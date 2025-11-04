@@ -2,12 +2,10 @@ import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { apiReference } from '@scalar/express-api-reference';
 import pool, { closePool } from './db/connection.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import resumeRoutes from './routes/resume.routes.js';
-import { openApiDocument } from './docs/openapi.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -55,24 +53,37 @@ app.get('/api/health', async (_req: Request, res: Response) => {
   }
 });
 
-// API Documentation (Scalar UI)
-app.use(
-  '/docs',
-  apiReference({
-    spec: {
-      content: openApiDocument,
-    },
-    theme: 'purple',
-    darkMode: true,
-    layout: 'modern',
-    defaultOpenAllTags: true,
-  })
-);
+// API Documentation (Scalar UI) - Only in development
+if (process.env.NODE_ENV !== 'production') {
+  (async () => {
+    try {
+      const { apiReference } = await import('@scalar/express-api-reference');
+      const { openApiDocument } = await import('./docs/openapi.js');
+      
+      app.use(
+        '/docs',
+        apiReference({
+          spec: {
+            content: openApiDocument,
+          },
+          theme: 'purple',
+          darkMode: true,
+          layout: 'modern',
+          defaultOpenAllTags: true,
+        })
+      );
 
-// OpenAPI JSON specification
-app.get('/openapi.json', (_req: Request, res: Response) => {
-  res.json(openApiDocument);
-});
+      app.get('/openapi.json', (_req: Request, res: Response) => {
+        res.json(openApiDocument);
+      });
+      
+      console.log(`📚 API Docs: http://localhost:${PORT}/docs`);
+      console.log(`📄 OpenAPI Spec: http://localhost:${PORT}/openapi.json`);
+    } catch (error) {
+      console.warn('⚠️ API Documentation not available:', error);
+    }
+  })();
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -89,8 +100,6 @@ app.use(errorHandler);
 const server = app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📚 API Docs: http://localhost:${PORT}/docs`);
-  console.log(`📄 OpenAPI Spec: http://localhost:${PORT}/openapi.json`);
 });
 
 // Graceful shutdown
