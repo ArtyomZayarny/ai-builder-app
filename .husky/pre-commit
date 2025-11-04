@@ -1,1 +1,32 @@
-cd client && npx lint-staged
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# TypeScript check for server
+echo "📦 Checking TypeScript in server..."
+cd server && npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors in server!"
+  exit 1
+fi
+cd ..
+
+# TypeScript check for client
+echo "🎨 Checking TypeScript in client..."
+cd client && npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors in client!"
+  exit 1
+fi
+
+# Lint-staged for client
+echo "✨ Running lint-staged for client..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ Linting errors!"
+  exit 1
+fi
+
+cd ..
+echo "✅ All checks passed!"

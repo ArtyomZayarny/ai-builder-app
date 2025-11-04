@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
+    "type-check": "tsc --noEmit",
     "start": "node dist/server.js",
     "dev": "tsx watch server.ts",
     "migrate": "tsx db/migrations/migrate.js",

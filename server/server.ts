@@ -3,8 +3,8 @@ import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import pool, { closePool } from './db/connection.js';
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
+// import authRoutes from './routes/auth.js'; // TODO: Migrate to TypeScript
+// import userRoutes from './routes/users.js'; // TODO: Migrate to TypeScript
 import resumeRoutes from './routes/resume.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
@@ -88,8 +88,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+// app.use('/api/auth', authRoutes); // TODO: Migrate to TypeScript
+// app.use('/api/users', userRoutes); // TODO: Migrate to TypeScript
 app.use('/api/resumes', resumeRoutes);
 
 // 404 handler (must be after all routes)
