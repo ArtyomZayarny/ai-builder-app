@@ -12,7 +12,12 @@ const PORT = process.env.PORT || 3001;
 
 // CORS configuration - allow frontend to access API
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174', process.env.CLIENT_URL],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://ai-builder-app-kappa.vercel.app',
+    process.env.CLIENT_URL, // Additional URL from env (optional)
+  ].filter(Boolean), // Remove undefined values
   credentials: true,
 };
 
