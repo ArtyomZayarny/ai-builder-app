@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
 import { getAllResumes, createResume, deleteResume, duplicateResume } from '../services/resumeApi';
@@ -81,9 +81,9 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your resumes...</p>
+        <div className="text-center animate-fade-in">
+          <Loader2 size={48} className="text-primary-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg font-medium">Loading your resumes...</p>
         </div>
       </div>
     );
@@ -92,17 +92,14 @@ export default function Dashboard() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 mb-4">
-            <FileText size={48} className="mx-auto" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="card max-w-md w-full p-8 text-center animate-slide-up">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={32} className="text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchResumes}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={fetchResumes} className="btn-primary w-full">
             Try Again
           </button>
         </div>
@@ -113,22 +110,19 @@ export default function Dashboard() {
   // Empty state
   if (resumes.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="mb-6">
-            <FileText size={64} className="mx-auto text-gray-400" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-lg animate-slide-up">
+          <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <FileText size={40} className="text-primary-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your First Resume</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Create Your First Resume</h2>
+          <p className="text-lg text-gray-600 mb-8">
             Build a professional resume in minutes with our easy-to-use builder. Choose from
             multiple templates and customize to your needs.
           </p>
-          <button
-            onClick={handleCreateResume}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            <Plus size={20} />
-            Create Resume
+          <button onClick={handleCreateResume} className="btn-primary text-lg px-8 py-4 shadow-lg">
+            <Plus size={24} />
+            <span className="ml-2">Create Resume</span>
           </button>
         </div>
       </div>
@@ -137,36 +131,45 @@ export default function Dashboard() {
 
   // Dashboard with resumes
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Resumes</h1>
-              <p className="text-gray-600 mt-1">Manage and edit your professional resumes</p>
+            <div className="animate-fade-in">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-primary-600 bg-clip-text text-transparent">
+                My Resumes
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">
+                Manage and edit your professional resumes
+              </p>
             </div>
             <button
               onClick={handleCreateResume}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
             >
               <Plus size={20} />
-              New Resume
+              <span className="ml-2">New Resume</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Resume Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {resumes.map(resume => (
-            <ResumeCard
+          {resumes.map((resume, index) => (
+            <div
               key={resume.id}
-              resume={resume}
-              onDelete={handleDeleteResume}
-              onDuplicate={handleDuplicateResume}
-            />
+              className="animate-scale-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <ResumeCard
+                resume={resume}
+                onDelete={handleDeleteResume}
+                onDuplicate={handleDuplicateResume}
+              />
+            </div>
           ))}
         </div>
       </main>
