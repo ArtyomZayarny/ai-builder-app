@@ -26,3 +26,4 @@ router.put('/me', authenticate, userController.updateCurrentUser);
 router.delete('/me', authenticate, userController.deleteCurrentUser);
 
 export default router;
+

@@ -25,8 +25,12 @@ export const PersonalInfoSchema = z.object({
 // For database updates (all fields optional)
 export const PersonalInfoUpdateSchema = PersonalInfoSchema.partial();
 
-// Type inference
-export const personalInfoExample = {
+// TypeScript types
+export type PersonalInfo = z.infer<typeof PersonalInfoSchema>;
+export type PersonalInfoUpdate = z.infer<typeof PersonalInfoUpdateSchema>;
+
+// Example
+export const personalInfoExample: PersonalInfo = {
   name: 'John Doe',
   role: 'Senior Full-Stack Developer',
   email: 'john.doe@example.com',

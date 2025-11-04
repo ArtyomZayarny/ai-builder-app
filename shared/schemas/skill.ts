@@ -22,7 +22,13 @@ export const SkillCreateSchema = SkillBaseSchema.omit({ id: true });
 // For updating (all fields optional except ID)
 export const SkillUpdateSchema = SkillBaseSchema.partial().required({ id: true });
 
-export const skillExample = {
+// TypeScript types
+export type Skill = z.infer<typeof SkillSchema>;
+export type SkillCreate = z.infer<typeof SkillCreateSchema>;
+export type SkillUpdate = z.infer<typeof SkillUpdateSchema>;
+
+// Example
+export const skillExample: SkillCreate = {
   name: 'React',
   category: 'Frontend',
   order: 0,
@@ -37,5 +43,7 @@ export const SKILL_CATEGORIES = [
   'DevOps',
   'Tools',
   'Soft Skills',
-];
+] as const;
+
+export type SkillCategory = typeof SKILL_CATEGORIES[number];
 

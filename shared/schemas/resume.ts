@@ -1,10 +1,13 @@
 import { z } from 'zod';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { PersonalInfoSchema } from './personalInfo.js';
 import { SummarySchema } from './summary.js';
 import { ExperienceSchema } from './experience.js';
 import { EducationSchema } from './education.js';
 import { ProjectSchema } from './project.js';
 import { SkillSchema } from './skill.js';
+
+extendZodWithOpenApi(z);
 
 /**
  * Resume Metadata Schema
@@ -34,16 +37,66 @@ export const ResumeSchema = z.object({
 });
 
 // For creating new resume
-export const ResumeCreateSchema = z.object({
-  title: z.string().min(1).max(255),
-  template: z.enum(['classic', 'modern', 'creative', 'technical']).optional(),
-  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-});
+export const ResumeCreateSchema = z
+  .object({
+    title: z.string().min(1).max(255).openapi({
+      description: 'Resume title',
+      example: 'Software Engineer Resume',
+    }),
+    template: z
+      .enum(['classic', 'modern', 'creative', 'technical'])
+      .optional()
+      .openapi({
+        description: 'Template name',
+        example: 'classic',
+      }),
+    accentColor: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/)
+      .optional()
+      .openapi({
+        description: 'Hex color code for theme accent',
+        example: '#3B82F6',
+      }),
+  })
+  .openapi('ResumeCreate');
 
 // For updating resume metadata
-export const ResumeUpdateSchema = ResumeMetadataSchema.partial().required({ id: true });
+export const ResumeUpdateSchema = z
+  .object({
+    title: z.string().min(1).max(255).optional().openapi({
+      description: 'Resume title',
+      example: 'Updated Resume Title',
+    }),
+    template: z
+      .enum(['classic', 'modern', 'creative', 'technical'])
+      .optional()
+      .openapi({
+        description: 'Template name',
+        example: 'modern',
+      }),
+    accentColor: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/)
+      .optional()
+      .openapi({
+        description: 'Hex color code for theme accent',
+        example: '#10B981',
+      }),
+  })
+  .openapi('ResumeUpdate');
 
-export const resumeExample = {
+// TypeScript types
+export type ResumeMetadata = z.infer<typeof ResumeMetadataSchema>;
+export type Resume = z.infer<typeof ResumeSchema>;
+export type ResumeCreate = z.infer<typeof ResumeCreateSchema>;
+export type ResumeUpdate = z.infer<typeof ResumeUpdateSchema>;
+
+// Template types
+export type ResumeTemplate = 'classic' | 'modern' | 'creative' | 'technical';
+
+// Example
+export const resumeExample: Resume = {
   metadata: {
     id: 1,
     title: 'Software Engineer Resume',

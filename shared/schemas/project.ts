@@ -25,7 +25,13 @@ export const ProjectCreateSchema = ProjectBaseSchema.omit({ id: true });
 // For updating (all fields optional except ID)
 export const ProjectUpdateSchema = ProjectBaseSchema.partial().required({ id: true });
 
-export const projectExample = {
+// TypeScript types
+export type Project = z.infer<typeof ProjectSchema>;
+export type ProjectCreate = z.infer<typeof ProjectCreateSchema>;
+export type ProjectUpdate = z.infer<typeof ProjectUpdateSchema>;
+
+// Example
+export const projectExample: ProjectCreate = {
   name: 'E-commerce Platform',
   description:
     'Built full-stack marketplace with Next.js, Stripe payments, and real-time inventory management. Deployed on Vercel with PostgreSQL database.',

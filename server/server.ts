@@ -1,11 +1,14 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import { apiReference } from '@scalar/express-api-reference';
 import pool, { closePool } from './db/connection.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
-import resumeRoutes from './routes/resumes.js';
+import resumeRoutes from './routes/resume.routes.js';
+import { openApiDocument } from './docs/openapi.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,7 +20,7 @@ const corsOptions = {
     'http://localhost:5174',
     'https://ai-builder-app-kappa.vercel.app',
     process.env.CLIENT_URL, // Additional URL from env (optional)
-  ].filter(Boolean), // Remove undefined values
+  ].filter((url): url is string => Boolean(url)), // Type guard to filter out undefined
   credentials: true,
 };
 
@@ -27,12 +30,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Server is a live!');
 });
 
 // Basic health check endpoint
-app.get('/api/health', async (req, res) => {
+app.get('/api/health', async (_req: Request, res: Response) => {
   try {
     // Check database connection
     await pool.query('SELECT NOW()');
@@ -52,24 +55,42 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// API Documentation (Scalar UI)
+app.use(
+  '/docs',
+  apiReference({
+    spec: {
+      content: openApiDocument,
+    },
+    theme: 'purple',
+    darkMode: true,
+    layout: 'modern',
+    defaultOpenAllTags: true,
+  })
+);
+
+// OpenAPI JSON specification
+app.get('/openapi.json', (_req: Request, res: Response) => {
+  res.json(openApiDocument);
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/resumes', resumeRoutes);
 
-// Error handling middleware
-app.use((err, req, res, _next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
-  });
-});
+// 404 handler (must be after all routes)
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📚 API Docs: http://localhost:${PORT}/docs`);
+  console.log(`📄 OpenAPI Spec: http://localhost:${PORT}/openapi.json`);
 });
 
 // Graceful shutdown
@@ -92,3 +113,4 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 export default app;
+

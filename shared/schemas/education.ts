@@ -27,7 +27,13 @@ export const EducationCreateSchema = EducationBaseSchema.omit({ id: true });
 // For updating (all fields optional except ID)
 export const EducationUpdateSchema = EducationBaseSchema.partial().required({ id: true });
 
-export const educationExample = {
+// TypeScript types
+export type Education = z.infer<typeof EducationSchema>;
+export type EducationCreate = z.infer<typeof EducationCreateSchema>;
+export type EducationUpdate = z.infer<typeof EducationUpdateSchema>;
+
+// Example
+export const educationExample: EducationCreate = {
   institution: 'University of California, Berkeley',
   degree: 'Bachelor of Science',
   field: 'Computer Science',
