@@ -62,6 +62,15 @@ class ResumeController {
     const personalInfo = await resumeService.updatePersonalInfo(req.params.id, req.body);
     res.json(successResponse(personalInfo, 'Personal info updated successfully'));
   });
+
+  /**
+   * Update summary
+   * PUT /api/resumes/:id/summary
+   */
+  updateSummary = asyncHandler(async (req: Request, res: Response) => {
+    const summary = await resumeService.updateSummary(req.params.id, req.body);
+    res.json(successResponse(summary, 'Summary updated successfully'));
+  });
 }
 
 export default new ResumeController();

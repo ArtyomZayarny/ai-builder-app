@@ -162,6 +162,28 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Update Summary
+   */
+  async updateSummary(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE summaries 
+       SET content = $1
+       WHERE resume_id = $2 
+       RETURNING *`,
+      [data.content, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Summary');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();

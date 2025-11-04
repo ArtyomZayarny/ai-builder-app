@@ -326,6 +326,88 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Summary ====================
+  describe('PUT /api/resumes/:id/summary', () => {
+    let testResumeId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for summary tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Summary Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    it('should update summary with valid data', async () => {
+      const summary = {
+        content:
+          'Experienced Full-Stack Developer with 6+ years of expertise in building scalable web applications. Proficient in React, Node.js, and cloud technologies.',
+      };
+
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/summary`)
+        .send(summary)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.content).toBe(summary.content);
+      expect(response.body.message).toBe('Summary updated successfully');
+    });
+
+    it('should fail with too short content', async () => {
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/summary`)
+        .send({
+          content: 'Too short',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should fail with too long content', async () => {
+      const longContent = 'A'.repeat(1001); // 1001 characters
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/summary`)
+        .send({
+          content: longContent,
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should fail with missing content', async () => {
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/summary`)
+        .send({})
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should return 404 for non-existent resume', async () => {
+      const response = await request(app)
+        .put('/api/resumes/99999/summary')
+        .send({
+          content:
+            'This is a valid summary with more than 50 characters for testing purposes.',
+        })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Resume not found');
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {

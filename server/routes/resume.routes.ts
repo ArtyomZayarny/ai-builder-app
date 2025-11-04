@@ -8,7 +8,8 @@ import { validate } from '../middleware/validate.js';
 import { 
   ResumeCreateSchema, 
   ResumeUpdateSchema,
-  PersonalInfoUpdateSchema
+  PersonalInfoUpdateSchema,
+  SummarySchema
 } from '@resume-builder/shared';
 
 const router = express.Router();
@@ -22,6 +23,9 @@ router.delete('/:id', resumeController.deleteResume);
 
 // Personal Info
 router.put('/:id/personal-info', validate(PersonalInfoUpdateSchema), resumeController.updatePersonalInfo);
+
+// Summary (content is required - single field, no partial update)
+router.put('/:id/summary', validate(SummarySchema), resumeController.updateSummary);
 
 export default router;
 
