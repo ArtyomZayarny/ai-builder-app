@@ -13,7 +13,9 @@ const BACKEND_URLS = {
 };
 
 // Get the backend URL from environment variable or use defaults
-export const BACKEND_URL = isProduction ? BACKEND_URLS.production : BACKEND_URLS.development;
+// Remove trailing slash if present to avoid double slashes in API URLs
+const rawBackendURL = isProduction ? BACKEND_URLS.production : BACKEND_URLS.development;
+export const BACKEND_URL = rawBackendURL?.replace(/\/$/, '') || rawBackendURL;
 
 // API endpoints helper
 export const API = {
