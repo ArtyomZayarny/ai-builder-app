@@ -125,6 +125,43 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Update Personal Info
+   */
+  async updatePersonalInfo(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE personal_info 
+       SET name = COALESCE($1, name),
+           role = COALESCE($2, role),
+           email = COALESCE($3, email),
+           phone = COALESCE($4, phone),
+           location = COALESCE($5, location),
+           linkedin_url = COALESCE($6, linkedin_url),
+           portfolio_url = COALESCE($7, portfolio_url)
+       WHERE resume_id = $8 
+       RETURNING *`,
+      [
+        data.name,
+        data.role,
+        data.email,
+        data.phone || null,
+        data.location || null,
+        data.linkedinUrl || null,
+        data.portfolioUrl || null,
+        resumeId,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Personal Info');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();

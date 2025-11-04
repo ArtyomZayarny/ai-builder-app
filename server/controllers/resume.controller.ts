@@ -53,6 +53,15 @@ class ResumeController {
     await resumeService.deleteResume(req.params.id);
     res.status(204).send();
   });
+
+  /**
+   * Update personal info
+   * PUT /api/resumes/:id/personal-info
+   */
+  updatePersonalInfo = asyncHandler(async (req: Request, res: Response) => {
+    const personalInfo = await resumeService.updatePersonalInfo(req.params.id, req.body);
+    res.json(successResponse(personalInfo, 'Personal info updated successfully'));
+  });
 }
 
 export default new ResumeController();

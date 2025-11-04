@@ -212,6 +212,120 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Personal Info ====================
+  describe('PUT /api/resumes/:id/personal-info', () => {
+    let testResumeId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for personal info tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Personal Info Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    it('should update personal info with valid data', async () => {
+      const personalInfo = {
+        name: 'John Doe',
+        role: 'Senior Developer',
+        email: 'john@example.com',
+        phone: '+1234567890',
+        location: 'San Francisco, CA',
+        linkedinUrl: 'https://linkedin.com/in/johndoe',
+        portfolioUrl: 'https://johndoe.dev',
+      };
+
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/personal-info`)
+        .send(personalInfo)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.name).toBe(personalInfo.name);
+      expect(response.body.data.role).toBe(personalInfo.role);
+      expect(response.body.data.email).toBe(personalInfo.email);
+      expect(response.body.data.phone).toBe(personalInfo.phone);
+      expect(response.body.message).toBe('Personal info updated successfully');
+    });
+
+    it('should update only provided fields', async () => {
+      const partialUpdate = {
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+      };
+
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/personal-info`)
+        .send(partialUpdate)
+        .expect(200);
+
+      expect(response.body.data.name).toBe(partialUpdate.name);
+      expect(response.body.data.email).toBe(partialUpdate.email);
+      expect(response.body.data.role).toBe('Senior Developer'); // Should remain unchanged
+    });
+
+    it('should fail with invalid email', async () => {
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/personal-info`)
+        .send({
+          name: 'Test',
+          role: 'Developer',
+          email: 'invalid-email',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should fail with invalid URL', async () => {
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/personal-info`)
+        .send({
+          name: 'Test',
+          role: 'Developer',
+          email: 'test@example.com',
+          linkedinUrl: 'not-a-url',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should return 404 for non-existent resume', async () => {
+      const response = await request(app)
+        .put('/api/resumes/99999/personal-info')
+        .send({
+          name: 'Test',
+          role: 'Developer',
+          email: 'test@example.com',
+        })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Resume not found');
+    });
+
+    it('should allow updating single fields (partial update)', async () => {
+      const response = await request(app)
+        .put(`/api/resumes/${testResumeId}/personal-info`)
+        .send({
+          phone: '+9999999999',
+        })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.phone).toBe('+9999999999');
+      expect(response.body.message).toBe('Personal info updated successfully');
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {
