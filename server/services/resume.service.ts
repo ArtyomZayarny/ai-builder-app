@@ -263,6 +263,111 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Get all education for a resume
+   */
+  async getEducation(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM education 
+       WHERE resume_id = $1 
+       ORDER BY order_index ASC`,
+      [resumeId]
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * Create new education
+   */
+  async createEducation(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `INSERT INTO education (resume_id, institution, degree, field, location, graduation_date, gpa, description, order_index)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        resumeId,
+        data.institution,
+        data.degree,
+        data.field || null,
+        data.location || null,
+        data.graduationDate || null,
+        data.gpa || null,
+        data.description || null,
+        data.order || 0,
+      ]
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * Update education
+   */
+  async updateEducation(resumeId: number | string, eduId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE education 
+       SET institution = COALESCE($1, institution),
+           degree = COALESCE($2, degree),
+           field = COALESCE($3, field),
+           location = COALESCE($4, location),
+           graduation_date = COALESCE($5, graduation_date),
+           gpa = COALESCE($6, gpa),
+           description = COALESCE($7, description),
+           order_index = COALESCE($8, order_index)
+       WHERE id = $9 AND resume_id = $10
+       RETURNING *`,
+      [
+        data.institution,
+        data.degree,
+        data.field,
+        data.location,
+        data.graduationDate,
+        data.gpa,
+        data.description,
+        data.order,
+        eduId,
+        resumeId,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Education');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Delete education
+   */
+  async deleteEducation(resumeId: number | string, eduId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `DELETE FROM education 
+       WHERE id = $1 AND resume_id = $2
+       RETURNING id`,
+      [eduId, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Education');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();

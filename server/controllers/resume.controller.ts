@@ -107,6 +107,42 @@ class ResumeController {
     await resumeService.deleteSkill(req.params.id, req.params.skillId);
     res.status(204).send();
   });
+
+  /**
+   * Get all education
+   * GET /api/resumes/:id/education
+   */
+  getEducation = asyncHandler(async (req: Request, res: Response) => {
+    const education = await resumeService.getEducation(req.params.id);
+    res.json(successResponse(education, 'Education retrieved successfully'));
+  });
+
+  /**
+   * Create education
+   * POST /api/resumes/:id/education
+   */
+  createEducation = asyncHandler(async (req: Request, res: Response) => {
+    const education = await resumeService.createEducation(req.params.id, req.body);
+    res.status(201).json(successResponse(education, 'Education created successfully'));
+  });
+
+  /**
+   * Update education
+   * PUT /api/resumes/:id/education/:eduId
+   */
+  updateEducation = asyncHandler(async (req: Request, res: Response) => {
+    const education = await resumeService.updateEducation(req.params.id, req.params.eduId, req.body);
+    res.json(successResponse(education, 'Education updated successfully'));
+  });
+
+  /**
+   * Delete education
+   * DELETE /api/resumes/:id/education/:eduId
+   */
+  deleteEducation = asyncHandler(async (req: Request, res: Response) => {
+    await resumeService.deleteEducation(req.params.id, req.params.eduId);
+    res.status(204).send();
+  });
 }
 
 export default new ResumeController();

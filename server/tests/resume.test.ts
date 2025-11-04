@@ -595,6 +595,214 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Education CRUD ====================
+  describe('Education CRUD', () => {
+    let testResumeId: number;
+    let testEducationId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for education tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Education Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    describe('GET /api/resumes/:id/education', () => {
+      it('should return empty array for resume without education', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/education`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toEqual([]);
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app).get('/api/resumes/99999/education').expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('POST /api/resumes/:id/education', () => {
+      it('should create education with valid data', async () => {
+        const education = {
+          institution: 'MIT',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          location: 'Cambridge, MA',
+          graduationDate: '2020-05-01',
+          gpa: '3.9',
+          description: 'Focused on AI and Machine Learning',
+          order: 0,
+        };
+
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/education`)
+          .send(education)
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.institution).toBe(education.institution);
+        expect(response.body.data.degree).toBe(education.degree);
+        expect(response.body.message).toBe('Education created successfully');
+
+        testEducationId = response.body.data.id; // Save for update/delete tests
+      });
+
+      it('should create education with only required fields', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/education`)
+          .send({
+            institution: 'Stanford University',
+            degree: 'Master of Science',
+          })
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.institution).toBe('Stanford University');
+      });
+
+      it('should fail with missing required fields', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/education`)
+          .send({ field: 'Computer Science' })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .post('/api/resumes/99999/education')
+          .send({
+            institution: 'Test University',
+            degree: 'Test Degree',
+          })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('PUT /api/resumes/:id/education/:eduId', () => {
+      it('should update education with valid data', async () => {
+        const update = {
+          institution: 'MIT (Updated)',
+          degree: 'Bachelor of Science in CS',
+        };
+
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/education/${testEducationId}`)
+          .send(update)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.institution).toBe(update.institution);
+        expect(response.body.data.degree).toBe(update.degree);
+        expect(response.body.message).toBe('Education updated successfully');
+      });
+
+      it('should update only provided fields', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/education/${testEducationId}`)
+          .send({ gpa: '4.0' })
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.gpa).toBe('4.0');
+      });
+
+      it('should return 404 for non-existent education', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/education/99999`)
+          .send({ institution: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Education not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/99999/education/1`)
+          .send({ institution: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('DELETE /api/resumes/:id/education/:eduId', () => {
+      it('should return 404 for non-existent education', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/${testResumeId}/education/99999`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Education not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/99999/education/1`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+
+      it('should delete education', async () => {
+        await request(app)
+          .delete(`/api/resumes/${testResumeId}/education/${testEducationId}`)
+          .expect(204);
+      });
+    });
+
+    describe('GET /api/resumes/:id/education - with data', () => {
+      beforeAll(async () => {
+        // Create some test education entries
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/education`)
+          .send({
+            institution: 'Harvard',
+            degree: 'PhD',
+            field: 'Computer Science',
+            order: 0,
+          });
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/education`)
+          .send({
+            institution: 'Yale',
+            degree: 'MBA',
+            field: 'Business Administration',
+            order: 1,
+          });
+      });
+
+      it('should return all education for resume', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/education`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.length).toBeGreaterThanOrEqual(2);
+        expect(response.body.data[0]).toHaveProperty('institution');
+        expect(response.body.data[0]).toHaveProperty('degree');
+      });
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {

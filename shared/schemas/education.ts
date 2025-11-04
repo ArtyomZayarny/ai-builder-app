@@ -24,8 +24,8 @@ export const EducationSchema = EducationBaseSchema;
 // For creating new education (no ID)
 export const EducationCreateSchema = EducationBaseSchema.omit({ id: true });
 
-// For updating (all fields optional except ID)
-export const EducationUpdateSchema = EducationBaseSchema.partial().required({ id: true });
+// For updating (all fields optional, ID not in body - it's in URL params)
+export const EducationUpdateSchema = EducationBaseSchema.omit({ id: true }).partial();
 
 // TypeScript types
 export type Education = z.infer<typeof EducationSchema>;
