@@ -7,7 +7,7 @@ import app from '../server.js';
 import pool from '../db/connection.js';
 
 describe('Resume API', () => {
-  let createdResumeId;
+  let createdResumeId: number;
 
   // Test data
   const validResume = {

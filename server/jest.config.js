@@ -1,17 +1,25 @@
 export default {
   testEnvironment: 'node',
-  transform: {},
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  },
+  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   collectCoverageFrom: [
-    'controllers/**/*.js',
-    'services/**/*.js',
-    'middleware/**/*.js',
-    'utils/**/*.js',
+    'controllers/**/*.ts',
+    'services/**/*.ts',
+    'middleware/**/*.ts',
+    'utils/**/*.ts',
   ],
   coveragePathIgnorePatterns: ['/node_modules/', '/tests/'],
   verbose: true,
 };
-
