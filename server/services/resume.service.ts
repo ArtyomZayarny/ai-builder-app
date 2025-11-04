@@ -368,6 +368,105 @@ class ResumeService {
 
     return result.rows[0];
   }
+
+  /**
+   * Get all projects for a resume
+   */
+  async getProjects(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM projects 
+       WHERE resume_id = $1 
+       ORDER BY order_index ASC`,
+      [resumeId]
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * Create new project
+   */
+  async createProject(resumeId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `INSERT INTO projects (resume_id, name, description, technologies, url, date, order_index)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        resumeId,
+        data.name,
+        data.description,
+        data.technologies || [],
+        data.url || null,
+        data.date || null,
+        data.order || 0,
+      ]
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * Update project
+   */
+  async updateProject(resumeId: number | string, projectId: number | string, data: any) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `UPDATE projects 
+       SET name = COALESCE($1, name),
+           description = COALESCE($2, description),
+           technologies = COALESCE($3, technologies),
+           url = COALESCE($4, url),
+           date = COALESCE($5, date),
+           order_index = COALESCE($6, order_index)
+       WHERE id = $7 AND resume_id = $8
+       RETURNING *`,
+      [
+        data.name,
+        data.description,
+        data.technologies,
+        data.url,
+        data.date,
+        data.order,
+        projectId,
+        resumeId,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Project');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Delete project
+   */
+  async deleteProject(resumeId: number | string, projectId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `DELETE FROM projects 
+       WHERE id = $1 AND resume_id = $2
+       RETURNING id`,
+      [projectId, resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Project');
+    }
+
+    return result.rows[0];
+  }
 }
 
 export default new ResumeService();

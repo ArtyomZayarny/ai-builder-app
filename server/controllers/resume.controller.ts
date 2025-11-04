@@ -143,6 +143,42 @@ class ResumeController {
     await resumeService.deleteEducation(req.params.id, req.params.eduId);
     res.status(204).send();
   });
+
+  /**
+   * Get all projects
+   * GET /api/resumes/:id/projects
+   */
+  getProjects = asyncHandler(async (req: Request, res: Response) => {
+    const projects = await resumeService.getProjects(req.params.id);
+    res.json(successResponse(projects, 'Projects retrieved successfully'));
+  });
+
+  /**
+   * Create project
+   * POST /api/resumes/:id/projects
+   */
+  createProject = asyncHandler(async (req: Request, res: Response) => {
+    const project = await resumeService.createProject(req.params.id, req.body);
+    res.status(201).json(successResponse(project, 'Project created successfully'));
+  });
+
+  /**
+   * Update project
+   * PUT /api/resumes/:id/projects/:projectId
+   */
+  updateProject = asyncHandler(async (req: Request, res: Response) => {
+    const project = await resumeService.updateProject(req.params.id, req.params.projectId, req.body);
+    res.json(successResponse(project, 'Project updated successfully'));
+  });
+
+  /**
+   * Delete project
+   * DELETE /api/resumes/:id/projects/:projectId
+   */
+  deleteProject = asyncHandler(async (req: Request, res: Response) => {
+    await resumeService.deleteProject(req.params.id, req.params.projectId);
+    res.status(204).send();
+  });
 }
 
 export default new ResumeController();

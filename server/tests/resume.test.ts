@@ -803,6 +803,212 @@ describe('Resume API', () => {
     });
   });
 
+  // ==================== Projects CRUD ====================
+  describe('Projects CRUD', () => {
+    let testResumeId: number;
+    let testProjectId: number;
+
+    beforeAll(async () => {
+      // Create a test resume for projects tests
+      const response = await request(app)
+        .post('/api/resumes')
+        .send({ title: 'Projects Test Resume' });
+      testResumeId = response.body.data.id;
+    });
+
+    afterAll(async () => {
+      // Clean up test resume
+      await request(app).delete(`/api/resumes/${testResumeId}`);
+    });
+
+    describe('GET /api/resumes/:id/projects', () => {
+      it('should return empty array for resume without projects', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/projects`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toEqual([]);
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app).get('/api/resumes/99999/projects').expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('POST /api/resumes/:id/projects', () => {
+      it('should create project with valid data', async () => {
+        const project = {
+          name: 'E-commerce Platform',
+          description: 'Built full-stack marketplace with Next.js and Stripe',
+          technologies: ['Next.js', 'React', 'PostgreSQL', 'Stripe'],
+          url: 'https://github.com/test/ecommerce',
+          date: '2023-06-01',
+          order: 0,
+        };
+
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/projects`)
+          .send(project)
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe(project.name);
+        expect(response.body.data.technologies).toEqual(project.technologies);
+        expect(response.body.message).toBe('Project created successfully');
+
+        testProjectId = response.body.data.id; // Save for update/delete tests
+      });
+
+      it('should create project with only required fields', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/projects`)
+          .send({
+            name: 'Simple App',
+            description: 'A simple application for testing purposes',
+          })
+          .expect(201);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe('Simple App');
+      });
+
+      it('should fail with missing required fields', async () => {
+        const response = await request(app)
+          .post(`/api/resumes/${testResumeId}/projects`)
+          .send({ name: 'Only Name' })
+          .expect(400);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation failed');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .post('/api/resumes/99999/projects')
+          .send({
+            name: 'Test Project',
+            description: 'Test description for testing',
+          })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('PUT /api/resumes/:id/projects/:projectId', () => {
+      it('should update project with valid data', async () => {
+        const update = {
+          name: 'E-commerce Platform (Updated)',
+          description: 'Enhanced marketplace with advanced features',
+        };
+
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/projects/${testProjectId}`)
+          .send(update)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.name).toBe(update.name);
+        expect(response.body.data.description).toBe(update.description);
+        expect(response.body.message).toBe('Project updated successfully');
+      });
+
+      it('should update only provided fields', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/projects/${testProjectId}`)
+          .send({ url: 'https://newurl.com' })
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.url).toBe('https://newurl.com');
+      });
+
+      it('should return 404 for non-existent project', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/${testResumeId}/projects/99999`)
+          .send({ name: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Project not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .put(`/api/resumes/99999/projects/1`)
+          .send({ name: 'Test' })
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+    });
+
+    describe('DELETE /api/resumes/:id/projects/:projectId', () => {
+      it('should return 404 for non-existent project', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/${testResumeId}/projects/99999`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Project not found');
+      });
+
+      it('should return 404 for non-existent resume', async () => {
+        const response = await request(app)
+          .delete(`/api/resumes/99999/projects/1`)
+          .expect(404);
+
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Resume not found');
+      });
+
+      it('should delete project', async () => {
+        await request(app)
+          .delete(`/api/resumes/${testResumeId}/projects/${testProjectId}`)
+          .expect(204);
+      });
+    });
+
+    describe('GET /api/resumes/:id/projects - with data', () => {
+      beforeAll(async () => {
+        // Create some test projects
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/projects`)
+          .send({
+            name: 'Project Alpha',
+            description: 'First test project with amazing features',
+            technologies: ['React', 'Node.js'],
+            order: 0,
+          });
+        await request(app)
+          .post(`/api/resumes/${testResumeId}/projects`)
+          .send({
+            name: 'Project Beta',
+            description: 'Second test project for validation',
+            technologies: ['Vue', 'Express'],
+            order: 1,
+          });
+      });
+
+      it('should return all projects for resume', async () => {
+        const response = await request(app)
+          .get(`/api/resumes/${testResumeId}/projects`)
+          .expect(200);
+
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.length).toBeGreaterThanOrEqual(2);
+        expect(response.body.data[0]).toHaveProperty('name');
+        expect(response.body.data[0]).toHaveProperty('technologies');
+      });
+    });
+  });
+
   // ==================== Error Handling ====================
   describe('Error Handling', () => {
     it('should return 404 for invalid route', async () => {

@@ -13,7 +13,9 @@ import {
   SkillCreateSchema,
   SkillUpdateSchema,
   EducationCreateSchema,
-  EducationUpdateSchema
+  EducationUpdateSchema,
+  ProjectCreateSchema,
+  ProjectUpdateSchema
 } from '@resume-builder/shared';
 
 const router = express.Router();
@@ -42,6 +44,12 @@ router.get('/:id/education', resumeController.getEducation);
 router.post('/:id/education', validate(EducationCreateSchema), resumeController.createEducation);
 router.put('/:id/education/:eduId', validate(EducationUpdateSchema), resumeController.updateEducation);
 router.delete('/:id/education/:eduId', resumeController.deleteEducation);
+
+// Projects CRUD
+router.get('/:id/projects', resumeController.getProjects);
+router.post('/:id/projects', validate(ProjectCreateSchema), resumeController.createProject);
+router.put('/:id/projects/:projectId', validate(ProjectUpdateSchema), resumeController.updateProject);
+router.delete('/:id/projects/:projectId', resumeController.deleteProject);
 
 export default router;
 

@@ -22,8 +22,8 @@ export const ProjectSchema = ProjectBaseSchema;
 // For creating new project (no ID)
 export const ProjectCreateSchema = ProjectBaseSchema.omit({ id: true });
 
-// For updating (all fields optional except ID)
-export const ProjectUpdateSchema = ProjectBaseSchema.partial().required({ id: true });
+// For updating (all fields optional, ID not in body - it's in URL params)
+export const ProjectUpdateSchema = ProjectBaseSchema.omit({ id: true }).partial();
 
 // TypeScript types
 export type Project = z.infer<typeof ProjectSchema>;
