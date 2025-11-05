@@ -127,6 +127,26 @@ class ResumeService {
   }
 
   /**
+   * Get Personal Info
+   */
+  async getPersonalInfo(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM personal_info 
+       WHERE resume_id = $1`,
+      [resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Personal Info');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
    * Update Personal Info
    */
   async updatePersonalInfo(resumeId: number | string, data: any) {
@@ -158,6 +178,26 @@ class ResumeService {
 
     if (result.rows.length === 0) {
       throw new NotFoundError('Personal Info');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Get Summary
+   */
+  async getSummary(resumeId: number | string) {
+    // First check if resume exists
+    await this.getResumeById(resumeId);
+
+    const result = await pool.query(
+      `SELECT * FROM summaries 
+       WHERE resume_id = $1`,
+      [resumeId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Summary');
     }
 
     return result.rows[0];

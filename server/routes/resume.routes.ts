@@ -30,9 +30,11 @@ router.put('/:id', validate(ResumeUpdateSchema), resumeController.updateResume);
 router.delete('/:id', resumeController.deleteResume);
 
 // Personal Info
+router.get('/:id/personal-info', resumeController.getPersonalInfo);
 router.put('/:id/personal-info', validate(PersonalInfoUpdateSchema), resumeController.updatePersonalInfo);
 
-// Summary (content is required - single field, no partial update)
+// Summary
+router.get('/:id/summary', resumeController.getSummary);
 router.put('/:id/summary', validate(SummarySchema), resumeController.updateSummary);
 
 // Skills CRUD

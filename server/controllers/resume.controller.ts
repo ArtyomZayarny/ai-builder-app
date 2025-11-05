@@ -55,12 +55,30 @@ class ResumeController {
   });
 
   /**
+   * Get personal info
+   * GET /api/resumes/:id/personal-info
+   */
+  getPersonalInfo = asyncHandler(async (req: Request, res: Response) => {
+    const personalInfo = await resumeService.getPersonalInfo(req.params.id);
+    res.json(successResponse(personalInfo, 'Personal info retrieved successfully'));
+  });
+
+  /**
    * Update personal info
    * PUT /api/resumes/:id/personal-info
    */
   updatePersonalInfo = asyncHandler(async (req: Request, res: Response) => {
     const personalInfo = await resumeService.updatePersonalInfo(req.params.id, req.body);
     res.json(successResponse(personalInfo, 'Personal info updated successfully'));
+  });
+
+  /**
+   * Get summary
+   * GET /api/resumes/:id/summary
+   */
+  getSummary = asyncHandler(async (req: Request, res: Response) => {
+    const summary = await resumeService.getSummary(req.params.id);
+    res.json(successResponse(summary, 'Summary retrieved successfully'));
   });
 
   /**
