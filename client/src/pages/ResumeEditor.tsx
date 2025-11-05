@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
 import ResumeEditorLayout from '../components/ResumeEditorLayout';
 import PersonalInfoSection from '../components/sections/PersonalInfoSection';
@@ -15,6 +16,7 @@ import ExperienceSection from '../components/sections/ExperienceSection';
 import EducationSection from '../components/sections/EducationSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import SkillsSection from '../components/sections/SkillsSection';
+import ResumePreview from '../components/ResumePreview';
 import {
   createResume,
   savePersonalInfo,
@@ -177,6 +179,47 @@ function ResumeEditorContent() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('resume-preview');
+    if (!element) {
+      toast.error('Preview not available', {
+        description: 'Please open the preview panel first',
+      });
+      return;
+    }
+
+    const fileName = formData.personalInfo?.name
+      ? `${formData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
+      : 'Resume.pdf';
+
+    const opt = {
+      margin: 0.5,
+      filename: fileName,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const },
+    };
+
+    toast.loading('Generating PDF...');
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        toast.dismiss();
+        toast.success('PDF downloaded! 📄', {
+          description: `Saved as ${fileName}`,
+        });
+      })
+      .catch((error: Error) => {
+        toast.dismiss();
+        toast.error('PDF generation failed', {
+          description: error.message,
+        });
+      });
+  };
+
   const renderSection = () => {
     switch (currentSection) {
       case 'personal-info':
@@ -202,14 +245,11 @@ function ResumeEditorContent() {
       onSectionChange={setCurrentSection}
       showPreview={showPreview}
       onTogglePreview={() => setShowPreview(!showPreview)}
-      previewPanel={
-        <div className="text-center text-gray-500 py-12">
-          <p>Live preview coming soon! 👀</p>
-        </div>
-      }
+      previewPanel={<ResumePreview />}
       isDirty={isDirty}
       isSaving={isSaving}
       onSave={handleSave}
+      onDownloadPDF={handleDownloadPDF}
     >
       {renderSection()}
     </ResumeEditorLayout>

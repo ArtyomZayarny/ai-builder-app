@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff,
   Save,
+  Download,
 } from 'lucide-react';
 
 interface ResumeEditorLayoutProps {
@@ -30,6 +31,7 @@ interface ResumeEditorLayoutProps {
   isDirty?: boolean;
   isSaving?: boolean;
   onSave?: () => void;
+  onDownloadPDF?: () => void;
 }
 
 interface NavItem {
@@ -57,6 +59,7 @@ export default function ResumeEditorLayout({
   isDirty = false,
   isSaving = false,
   onSave,
+  onDownloadPDF,
 }: ResumeEditorLayoutProps) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -102,6 +105,18 @@ export default function ResumeEditorLayout({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Download PDF Button */}
+            {onDownloadPDF && !isNewResume && (
+              <button
+                onClick={onDownloadPDF}
+                className="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors font-medium"
+                title="Download as PDF"
+              >
+                <Download size={20} />
+                <span className="hidden sm:inline">PDF</span>
+              </button>
+            )}
+
             {/* Preview Toggle (Desktop only) */}
             {onTogglePreview && (
               <button

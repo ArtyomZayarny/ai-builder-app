@@ -17,6 +17,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@resume-builder/shared": "*",
+    "html2pdf.js": "^0.12.1",
     "lucide-react": "^0.468.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
