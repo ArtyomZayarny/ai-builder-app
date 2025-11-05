@@ -179,7 +179,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [isLoading] // Include isLoading since it's used in the guard clause
+    [] // Empty deps - loadingRef prevents duplicate calls without needing isLoading dependency
   );
 
   // Load resume data if editing existing resume
