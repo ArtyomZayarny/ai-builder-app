@@ -52,18 +52,19 @@ export default function EducationSection() {
 
   const watchedEducation = watch('education');
 
+  // Load data from API only once on mount
   useEffect(() => {
     if (formData.education && formData.education.length > 0) {
       setValue('education', formData.education as any);
     }
-  }, [formData.education, setValue]);
+  }, []); // Only run once
 
   const debouncedUpdate = useDebouncedCallback((education: Education[]) => {
     updateFormData('education', education);
   }, 300);
 
   useEffect(() => {
-    if (watchedEducation) {
+    if (watchedEducation && watchedEducation.length > 0) {
       debouncedUpdate(watchedEducation as Education[]);
     }
   }, [watchedEducation, debouncedUpdate]);

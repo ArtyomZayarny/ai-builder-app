@@ -30,17 +30,23 @@ export default function SummarySection() {
     setCharCount(summaryContent?.length || 0);
   }, [summaryContent]);
 
-  // Update form when data loads from API
+  // Update form when data loads from API (only once)
   useEffect(() => {
     if (formData.summary) {
       setValue('content', formData.summary.content || '');
     }
-  }, [formData.summary, setValue]);
+  }, []); // Only run once on mount
 
   // Debounced update - only update context after user stops typing (300ms delay)
   const debouncedUpdate = useDebouncedCallback((value: string) => {
     updateFormData('summary', { content: value });
   }, 300);
+
+  useEffect(() => {
+    if (summaryContent) {
+      debouncedUpdate(summaryContent);
+    }
+  }, [summaryContent, debouncedUpdate]);
 
   return (
     <div className="space-y-6">
@@ -56,9 +62,7 @@ export default function SummarySection() {
             Professional Summary <span className="text-red-500">*</span>
           </label>
           <textarea
-            {...register('content', {
-              onChange: e => debouncedUpdate(e.target.value),
-            })}
+            {...register('content')}
             id="content"
             rows={8}
             placeholder="Write a compelling summary of your professional background, key skills, and career achievements. Aim for 250-500 characters."

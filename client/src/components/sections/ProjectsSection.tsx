@@ -49,6 +49,7 @@ export default function ProjectsSection() {
 
   const watchedProjects = watch('projects');
 
+  // Load data from API only once on mount
   useEffect(() => {
     if (formData.projects && formData.projects.length > 0) {
       setValue(
@@ -59,7 +60,7 @@ export default function ProjectsSection() {
         })) as any
       );
     }
-  }, [formData.projects, setValue]);
+  }, []); // Only run once
 
   const debouncedUpdate = useDebouncedCallback((projects: any[]) => {
     // Convert string to array before saving
@@ -75,7 +76,7 @@ export default function ProjectsSection() {
   }, 300);
 
   useEffect(() => {
-    if (watchedProjects) {
+    if (watchedProjects && watchedProjects.length > 0) {
       debouncedUpdate(watchedProjects);
     }
   }, [watchedProjects, debouncedUpdate]);

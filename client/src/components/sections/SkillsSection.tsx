@@ -48,18 +48,19 @@ export default function SkillsSection() {
 
   const watchedSkills = watch('skills');
 
+  // Load data from API only once on mount
   useEffect(() => {
     if (formData.skills && formData.skills.length > 0) {
       setValue('skills', formData.skills as any);
     }
-  }, [formData.skills, setValue]);
+  }, []); // Only run once
 
   const debouncedUpdate = useDebouncedCallback((skills: Skill[]) => {
     updateFormData('skills', skills);
   }, 300);
 
   useEffect(() => {
-    if (watchedSkills) {
+    if (watchedSkills && watchedSkills.length > 0) {
       debouncedUpdate(watchedSkills as Skill[]);
     }
   }, [watchedSkills, debouncedUpdate]);

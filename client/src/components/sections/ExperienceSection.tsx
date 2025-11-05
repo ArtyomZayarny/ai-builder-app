@@ -53,18 +53,19 @@ export default function ExperienceSection() {
 
   const watchedExperiences = watch('experiences');
 
+  // Load data from API only once on mount
   useEffect(() => {
     if (formData.experiences && formData.experiences.length > 0) {
       setValue('experiences', formData.experiences as any);
     }
-  }, [formData.experiences, setValue]);
+  }, []); // Only run once
 
   const debouncedUpdate = useDebouncedCallback((experiences: Experience[]) => {
     updateFormData('experiences', experiences);
   }, 300);
 
   useEffect(() => {
-    if (watchedExperiences) {
+    if (watchedExperiences && watchedExperiences.length > 0) {
       debouncedUpdate(watchedExperiences as Experience[]);
     }
   }, [watchedExperiences, debouncedUpdate]);

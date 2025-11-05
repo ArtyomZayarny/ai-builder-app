@@ -17,30 +17,33 @@ export default function PersonalInfoSection() {
     register,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<PersonalInfo>({
     resolver: zodResolver(PersonalInfoSchema),
     defaultValues: formData.personalInfo || {},
   });
 
-  // Update form when data loads from API
+  const watchedData = watch();
+
+  // Update form when data loads from API (only once)
   useEffect(() => {
     if (formData.personalInfo) {
       Object.entries(formData.personalInfo).forEach(([key, value]) => {
         setValue(key as keyof PersonalInfo, value);
       });
     }
-  }, [formData.personalInfo, setValue]);
+  }, []); // Only run once on mount
 
   // Debounced update - only update context after user stops typing (300ms delay)
-  const debouncedUpdate = useDebouncedCallback(
-    (field: keyof PersonalInfo, value: string) => {
-      updateFormData('personalInfo', {
-        ...formData.personalInfo,
-        [field]: value,
-      });
-    },
-    300 // 300ms delay
-  );
+  const debouncedUpdate = useDebouncedCallback((data: PersonalInfo) => {
+    updateFormData('personalInfo', data);
+  }, 300);
+
+  useEffect(() => {
+    if (watchedData) {
+      debouncedUpdate(watchedData);
+    }
+  }, [watchedData, debouncedUpdate]);
 
   return (
     <div className="space-y-6">
@@ -56,9 +59,7 @@ export default function PersonalInfoSection() {
             Full Name <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('name', {
-              onChange: e => debouncedUpdate('name', e.target.value),
-            })}
+            {...register('name')}
             type="text"
             id="name"
             placeholder="John Doe"
@@ -75,9 +76,7 @@ export default function PersonalInfoSection() {
             Professional Title <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('role', {
-              onChange: e => debouncedUpdate('role', e.target.value),
-            })}
+            {...register('role')}
             type="text"
             id="role"
             placeholder="Senior Full-Stack Developer"
@@ -94,9 +93,7 @@ export default function PersonalInfoSection() {
             Email Address <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('email', {
-              onChange: e => debouncedUpdate('email', e.target.value),
-            })}
+            {...register('email')}
             type="email"
             id="email"
             placeholder="john.doe@example.com"
@@ -113,9 +110,7 @@ export default function PersonalInfoSection() {
             Phone Number
           </label>
           <input
-            {...register('phone', {
-              onChange: e => debouncedUpdate('phone', e.target.value),
-            })}
+            {...register('phone')}
             type="tel"
             id="phone"
             placeholder="+1 (555) 123-4567"
@@ -132,9 +127,7 @@ export default function PersonalInfoSection() {
             Location
           </label>
           <input
-            {...register('location', {
-              onChange: e => debouncedUpdate('location', e.target.value),
-            })}
+            {...register('location')}
             type="text"
             id="location"
             placeholder="San Francisco, CA"
@@ -153,9 +146,7 @@ export default function PersonalInfoSection() {
             LinkedIn URL
           </label>
           <input
-            {...register('linkedinUrl', {
-              onChange: e => debouncedUpdate('linkedinUrl', e.target.value),
-            })}
+            {...register('linkedinUrl')}
             type="url"
             id="linkedinUrl"
             placeholder="https://linkedin.com/in/johndoe"
@@ -174,9 +165,7 @@ export default function PersonalInfoSection() {
             Portfolio / Website
           </label>
           <input
-            {...register('portfolioUrl', {
-              onChange: e => debouncedUpdate('portfolioUrl', e.target.value),
-            })}
+            {...register('portfolioUrl')}
             type="url"
             id="portfolioUrl"
             placeholder="https://johndoe.dev"
