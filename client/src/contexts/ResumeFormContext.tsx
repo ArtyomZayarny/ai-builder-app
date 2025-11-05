@@ -81,11 +81,13 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   // Memoize loadResumeData to prevent infinite loops in useEffect
   const loadResumeData = useCallback(
     async (id: string) => {
-      // Prevent duplicate loads
-      if (loadingRef.current === id && isLoading) {
+      // Prevent duplicate loads - if already loading this resume, skip
+      if (loadingRef.current === id) {
+        console.log('Already loading resume:', id);
         return;
       }
 
+      loadingRef.current = id; // Mark as loading immediately
       setIsLoading(true);
       setError(null);
       try {
@@ -171,12 +173,13 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load resume data');
         console.error('❌ Failed to load resume data:', err);
-      } finally {
-        setIsLoading(false);
-        // Reset loading ref after completion (only if still loading the same resume)
+        // Reset on error so retry is possible
         if (loadingRef.current === id) {
           loadingRef.current = null;
         }
+      } finally {
+        setIsLoading(false);
+        // DON'T reset loadingRef on success - keep it to prevent re-loads (React StrictMode)
       }
     },
     [] // Empty deps - loadingRef prevents duplicate calls without needing isLoading dependency
@@ -184,11 +187,10 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
 
   // Load resume data if editing existing resume
   useEffect(() => {
-    if (!isNewResume && resumeId && loadingRef.current !== resumeId) {
-      loadingRef.current = resumeId; // Mark as loading
-      loadResumeData(resumeId);
+    if (!isNewResume && resumeId) {
+      loadResumeData(resumeId); // loadResumeData handles duplicate prevention internally
     }
-  }, [resumeId, isNewResume, loadResumeData]); // Now we can safely include loadResumeData
+  }, [resumeId, isNewResume, loadResumeData]);
 
   const updateFormData = useCallback(
     <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => {
