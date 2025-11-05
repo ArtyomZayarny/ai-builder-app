@@ -3,61 +3,80 @@
  * Live editing with preview - creates record on first save
  */
 
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, Save } from 'lucide-react';
+import { useState } from 'react';
+import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
+import ResumeEditorLayout from '../components/ResumeEditorLayout';
+import PersonalInfoSection from '../components/sections/PersonalInfoSection';
+import SummarySection from '../components/sections/SummarySection';
+import ExperienceSection from '../components/sections/ExperienceSection';
+import EducationSection from '../components/sections/EducationSection';
+import ProjectsSection from '../components/sections/ProjectsSection';
+import SkillsSection from '../components/sections/SkillsSection';
 
-export default function ResumeEditor() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+function ResumeEditorContent() {
+  const [currentSection, setCurrentSection] = useState('personal-info');
+  const [showPreview, setShowPreview] = useState(false);
+  const { isDirty, isSaving, setIsSaving, setIsDirty, formData } = useResumeForm();
 
-  const isNewResume = id === 'new';
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // TODO: Implement save logic
+      console.log('Saving resume data:', formData);
+      // await saveResumeData(formData);
+      setTimeout(() => {
+        setIsSaving(false);
+        setIsDirty(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Save failed:', error);
+      setIsSaving(false);
+    }
+  };
+
+  const renderSection = () => {
+    switch (currentSection) {
+      case 'personal-info':
+        return <PersonalInfoSection />;
+      case 'summary':
+        return <SummarySection />;
+      case 'experience':
+        return <ExperienceSection />;
+      case 'education':
+        return <EducationSection />;
+      case 'projects':
+        return <ProjectsSection />;
+      case 'skills':
+        return <SkillsSection />;
+      default:
+        return <PersonalInfoSection />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="mb-6">
-          <FileText size={64} className="mx-auto text-blue-600" />
+    <ResumeEditorLayout
+      currentSection={currentSection}
+      onSectionChange={setCurrentSection}
+      showPreview={showPreview}
+      onTogglePreview={() => setShowPreview(!showPreview)}
+      previewPanel={
+        <div className="text-center text-gray-500 py-12">
+          <p>Live preview coming soon! 👀</p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {isNewResume ? 'Create New Resume' : 'Edit Resume'}
-        </h2>
-        <p className="text-gray-600 mb-2">
-          {isNewResume ? (
-            <>
-              <span className="font-semibold">Live editing mode</span>
-              <br />
-              Fill in your details and click Save to create
-            </>
-          ) : (
-            <>
-              Editing Resume ID: <span className="font-mono font-semibold">{id}</span>
-            </>
-          )}
-        </p>
-        <p className="text-gray-500 mb-6">
-          {isNewResume
-            ? '✨ No database record yet - will be created on Save'
-            : 'Resume editor will be implemented next! 🚀'}
-        </p>
-        <div className="flex gap-3 justify-center">
-          <button
-            onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-          >
-            <ArrowLeft size={20} />
-            Back to Dashboard
-          </button>
-          {isNewResume && (
-            <button
-              disabled
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg opacity-50 cursor-not-allowed font-medium"
-            >
-              <Save size={20} />
-              Save Resume
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+      }
+      isDirty={isDirty}
+      isSaving={isSaving}
+      onSave={handleSave}
+    >
+      {renderSection()}
+    </ResumeEditorLayout>
+  );
+}
+
+export default function ResumeEditor() {
+  return (
+    <ResumeFormProvider>
+      <ResumeEditorContent />
+    </ResumeFormProvider>
   );
 }
