@@ -8,7 +8,6 @@ import { z } from 'zod';
 import type { Education } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 import { Plus, Trash2, GraduationCap } from 'lucide-react';
 
 // Array schema for form
@@ -59,15 +58,11 @@ export default function EducationSection() {
     }
   }, []); // Only run once
 
-  const debouncedUpdate = useDebouncedCallback((education: Education[]) => {
-    updateFormData('education', education);
-  }, 300);
-
   useEffect(() => {
     if (watchedEducation && watchedEducation.length > 0) {
-      debouncedUpdate(watchedEducation as Education[]);
+      updateFormData('education', watchedEducation as Education[]);
     }
-  }, [watchedEducation, debouncedUpdate]);
+  }, [watchedEducation, updateFormData]);
 
   const handleAdd = () => {
     append({

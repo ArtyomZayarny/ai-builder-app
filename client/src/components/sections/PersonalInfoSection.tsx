@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonalInfoSchema, type PersonalInfo } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useRef } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 
 export default function PersonalInfoSection() {
   const { formData, updateFormData } = useResumeForm();
@@ -18,13 +17,11 @@ export default function PersonalInfoSection() {
     register,
     formState: { errors },
     setValue,
-    watch,
+    getValues,
   } = useForm<PersonalInfo>({
     resolver: zodResolver(PersonalInfoSchema),
     defaultValues: formData.personalInfo || {},
   });
-
-  const watchedData = watch();
 
   // Update form when data loads from API (only once)
   useEffect(() => {
@@ -39,17 +36,15 @@ export default function PersonalInfoSection() {
     }
   }, []); // Only run once on mount
 
-  // Debounced update - only update context after user stops typing (300ms delay)
-  const debouncedUpdate = useDebouncedCallback((data: PersonalInfo) => {
-    updateFormData('personalInfo', data);
-  }, 300);
+  // Handle field change - update context with all form data
+  const handleFieldChange = () => {
+    // Skip update during initial data load
+    if (isInitialLoadRef.current) return;
 
-  useEffect(() => {
-    // ✅ Don't update context during initial load - only when user actually types
-    if (watchedData && !isInitialLoadRef.current) {
-      debouncedUpdate(watchedData);
-    }
-  }, [watchedData, debouncedUpdate]);
+    // Update context with current form values
+    const currentValues = getValues();
+    updateFormData('personalInfo', currentValues);
+  };
 
   return (
     <div className="space-y-6">
@@ -65,7 +60,7 @@ export default function PersonalInfoSection() {
             Full Name <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('name')}
+            {...register('name', { onChange: handleFieldChange })}
             type="text"
             id="name"
             placeholder="John Doe"
@@ -82,7 +77,7 @@ export default function PersonalInfoSection() {
             Professional Title <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('role')}
+            {...register('role', { onChange: handleFieldChange })}
             type="text"
             id="role"
             placeholder="Senior Full-Stack Developer"
@@ -99,7 +94,7 @@ export default function PersonalInfoSection() {
             Email Address <span className="text-red-500">*</span>
           </label>
           <input
-            {...register('email')}
+            {...register('email', { onChange: handleFieldChange })}
             type="email"
             id="email"
             placeholder="john.doe@example.com"
@@ -116,7 +111,7 @@ export default function PersonalInfoSection() {
             Phone Number
           </label>
           <input
-            {...register('phone')}
+            {...register('phone', { onChange: handleFieldChange })}
             type="tel"
             id="phone"
             placeholder="+1 (555) 123-4567"
@@ -133,7 +128,7 @@ export default function PersonalInfoSection() {
             Location
           </label>
           <input
-            {...register('location')}
+            {...register('location', { onChange: handleFieldChange })}
             type="text"
             id="location"
             placeholder="San Francisco, CA"
@@ -152,7 +147,7 @@ export default function PersonalInfoSection() {
             LinkedIn URL
           </label>
           <input
-            {...register('linkedinUrl')}
+            {...register('linkedinUrl', { onChange: handleFieldChange })}
             type="url"
             id="linkedinUrl"
             placeholder="https://linkedin.com/in/johndoe"
@@ -171,7 +166,7 @@ export default function PersonalInfoSection() {
             Portfolio / Website
           </label>
           <input
-            {...register('portfolioUrl')}
+            {...register('portfolioUrl', { onChange: handleFieldChange })}
             type="url"
             id="portfolioUrl"
             placeholder="https://johndoe.dev"

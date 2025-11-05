@@ -4,8 +4,7 @@
  * Auto-saves changes - no manual save button needed!
  */
 
-import { ReactNode, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ReactNode, useState } from 'react';
 import {
   User,
   FileText,
@@ -20,7 +19,6 @@ import {
   EyeOff,
   Download,
   Check,
-  Loader2,
 } from 'lucide-react';
 
 interface ResumeEditorLayoutProps {
@@ -30,13 +28,12 @@ interface ResumeEditorLayoutProps {
   showPreview?: boolean;
   onTogglePreview?: () => void;
   previewPanel?: ReactNode;
-  isSaving?: boolean;
-  lastSaved?: Date | null;
   isCreateEnabled?: boolean;
   onCreate?: () => void;
   isNewResume?: boolean;
   resumeId?: string | null;
   onDownloadPDF?: () => void;
+  onDashboardClick?: () => void;
 }
 
 interface NavItem {
@@ -61,43 +58,14 @@ export default function ResumeEditorLayout({
   showPreview = false,
   onTogglePreview,
   previewPanel,
-  isSaving = false,
-  lastSaved,
   isCreateEnabled = false,
   onCreate,
   isNewResume = false,
   resumeId,
   onDownloadPDF,
+  onDashboardClick,
 }: ResumeEditorLayoutProps) {
-  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [timeAgo, setTimeAgo] = useState<string>('');
-
-  // Update time ago for last saved
-  useEffect(() => {
-    if (!lastSaved) {
-      setTimeAgo('');
-      return;
-    }
-
-    const updateTimeAgo = () => {
-      const seconds = Math.floor((Date.now() - lastSaved.getTime()) / 1000);
-      if (seconds < 60) {
-        setTimeAgo('just now');
-      } else if (seconds < 3600) {
-        const minutes = Math.floor(seconds / 60);
-        setTimeAgo(`${minutes}m ago`);
-      } else {
-        const hours = Math.floor(seconds / 3600);
-        setTimeAgo(`${hours}h ago`);
-      }
-    };
-
-    updateTimeAgo();
-    const interval = setInterval(updateTimeAgo, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [lastSaved]);
 
   const handleNavClick = (sectionId: string) => {
     onSectionChange(sectionId);
@@ -121,7 +89,7 @@ export default function ResumeEditorLayout({
 
             {/* Back Button */}
             <button
-              onClick={() => navigate('/')}
+              onClick={onDashboardClick || (() => (window.location.href = '/'))}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft size={20} />
@@ -133,23 +101,8 @@ export default function ResumeEditorLayout({
               <span className="text-gray-500">
                 {isNewResume ? 'New Resume' : `Resume #${resumeId}`}
               </span>
-              {isNewResume ? (
+              {isNewResume && (
                 <span className="text-gray-400 font-medium">• Fill required fields to create</span>
-              ) : (
-                <>
-                  {isSaving && (
-                    <span className="text-blue-600 font-medium flex items-center gap-1">
-                      <Loader2 size={14} className="animate-spin" />
-                      Saving...
-                    </span>
-                  )}
-                  {!isSaving && lastSaved && (
-                    <span className="text-green-600 font-medium flex items-center gap-1">
-                      <Check size={14} />
-                      Saved {timeAgo}
-                    </span>
-                  )}
-                </>
               )}
             </div>
           </div>
@@ -159,9 +112,9 @@ export default function ResumeEditorLayout({
             {isNewResume && onCreate && (
               <button
                 onClick={onCreate}
-                disabled={!isCreateEnabled || isSaving}
+                disabled={!isCreateEnabled}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isCreateEnabled && !isSaving
+                  isCreateEnabled
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
@@ -171,17 +124,8 @@ export default function ResumeEditorLayout({
                     : 'Create resume in database'
                 }
               >
-                {isSaving ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin" />
-                    <span>Creating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={20} />
-                    <span>Create</span>
-                  </>
-                )}
+                <Check size={20} />
+                <span>Create</span>
               </button>
             )}
 
@@ -213,26 +157,11 @@ export default function ResumeEditorLayout({
         </div>
 
         {/* Mobile Status Bar */}
-        <div className="md:hidden px-4 pb-3 flex items-center gap-2 text-sm text-gray-600">
-          {isNewResume ? (
+        {isNewResume && (
+          <div className="md:hidden px-4 pb-3 flex items-center gap-2 text-sm text-gray-600">
             <span className="text-gray-400">Fill required fields to create</span>
-          ) : (
-            <>
-              {isSaving && (
-                <span className="text-blue-600 flex items-center gap-1">
-                  <Loader2 size={14} className="animate-spin" />
-                  Saving...
-                </span>
-              )}
-              {!isSaving && lastSaved && (
-                <span className="text-green-600 flex items-center gap-1">
-                  <Check size={14} />
-                  Saved {timeAgo}
-                </span>
-              )}
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content Area */}

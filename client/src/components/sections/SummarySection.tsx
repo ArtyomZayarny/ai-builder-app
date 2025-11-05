@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SummarySchema, type Summary } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useState, useRef } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 
 export default function SummarySection() {
   const { formData, updateFormData } = useResumeForm();
@@ -19,6 +18,7 @@ export default function SummarySection() {
     register,
     formState: { errors },
     setValue,
+    getValues,
     watch,
   } = useForm<Summary>({
     resolver: zodResolver(SummarySchema),
@@ -42,17 +42,15 @@ export default function SummarySection() {
     }
   }, []); // Only run once on mount
 
-  // Debounced update - only update context after user stops typing (300ms delay)
-  const debouncedUpdate = useDebouncedCallback((value: string) => {
-    updateFormData('summary', { content: value });
-  }, 300);
+  // Handle field change - update context immediately
+  const handleFieldChange = () => {
+    // Skip update during initial data load
+    if (isInitialLoadRef.current) return;
 
-  useEffect(() => {
-    // ✅ Don't update context during initial load - only when user actually types
-    if (summaryContent && !isInitialLoadRef.current) {
-      debouncedUpdate(summaryContent);
-    }
-  }, [summaryContent, debouncedUpdate]);
+    // Update context with current form values
+    const currentValues = getValues();
+    updateFormData('summary', currentValues);
+  };
 
   return (
     <div className="space-y-6">
@@ -68,7 +66,7 @@ export default function SummarySection() {
             Professional Summary <span className="text-red-500">*</span>
           </label>
           <textarea
-            {...register('content')}
+            {...register('content', { onChange: handleFieldChange })}
             id="content"
             rows={8}
             placeholder="Write a compelling summary of your professional background, key skills, and career achievements. Aim for 250-500 characters."

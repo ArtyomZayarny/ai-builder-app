@@ -8,7 +8,6 @@ import { z } from 'zod';
 import type { Project } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 import { Plus, Trash2, FolderGit2 } from 'lucide-react';
 
 // Array schema for form
@@ -62,24 +61,20 @@ export default function ProjectsSection() {
     }
   }, []); // Only run once
 
-  const debouncedUpdate = useDebouncedCallback((projects: any[]) => {
-    // Convert string to array before saving
-    const converted = projects.map(p => ({
-      ...p,
-      technologies:
-        p.technologies
-          ?.split(',')
-          .map((t: string) => t.trim())
-          .filter(Boolean) || [],
-    }));
-    updateFormData('projects', converted as Project[]);
-  }, 300);
-
   useEffect(() => {
     if (watchedProjects && watchedProjects.length > 0) {
-      debouncedUpdate(watchedProjects);
+      // Convert string to array before saving
+      const converted = watchedProjects.map(p => ({
+        ...p,
+        technologies:
+          p.technologies
+            ?.split(',')
+            .map((t: string) => t.trim())
+            .filter(Boolean) || [],
+      }));
+      updateFormData('projects', converted as Project[]);
     }
-  }, [watchedProjects, debouncedUpdate]);
+  }, [watchedProjects, updateFormData]);
 
   const handleAdd = () => {
     append({

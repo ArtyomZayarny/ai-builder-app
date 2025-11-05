@@ -3,7 +3,7 @@
  * Auto-saves on section change and after 2 seconds of inactivity
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -31,20 +31,9 @@ function ResumeEditorContent() {
   const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState('personal-info');
   const [showPreview, setShowPreview] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const {
-    isDirty,
-    isSaving,
-    setIsSaving,
-    setIsDirty,
-    formData,
-    resumeId,
-    isNewResume,
-    isLoading,
-    error,
-  } = useResumeForm();
+  const { isDirty, setIsDirty, formData, resumeId, isNewResume, isLoading, error } =
+    useResumeForm();
 
   // Check if all required fields are filled
   const isCreateEnabled = Boolean(
@@ -53,18 +42,9 @@ function ResumeEditorContent() {
       formData.personalInfo?.email?.trim()
   );
 
-  // Auto-save to local state only (for existing resumes)
-  // IMPORTANT: All hooks must be declared BEFORE any early returns!
-  const autoSave = useCallback(async () => {
-    // Only auto-save for existing resumes (not new ones)
-    if (isNewResume || !resumeId) {
-      return;
-    }
-
-    // Skip if already saving
-    if (isSaving) return;
-
-    setIsSaving(true);
+  // Save all form data to backend (called before PDF download or navigation)
+  const saveAllData = useCallback(async () => {
+    if (!resumeId) return;
 
     try {
       // Save Personal Info
@@ -107,46 +87,28 @@ function ResumeEditorContent() {
         await saveSkills(resumeId, formData.skills);
       }
 
-      setIsSaving(false);
       setIsDirty(false);
-      setLastSaved(new Date());
     } catch (error) {
-      console.error('❌ Auto-save failed:', error);
-      setIsSaving(false);
-      toast.error('Failed to auto-save', {
+      console.error('❌ Save failed:', error);
+      toast.error('Failed to save changes', {
         description: error instanceof Error ? error.message : 'Changes not saved',
       });
+      throw error; // Re-throw to handle in calling function
     }
-  }, [formData, resumeId, isNewResume, isSaving, setIsSaving, setIsDirty]);
+  }, [formData, resumeId, setIsDirty]);
 
-  // Auto-save on section change (for existing resumes only)
+  // Warn user before leaving with unsaved changes
   useEffect(() => {
-    if (isDirty && !isNewResume && resumeId) {
-      autoSave();
-    }
-  }, [currentSection, isDirty, isNewResume, resumeId]); // autoSave captures latest formData via closure
-
-  // Auto-save with debounce (2 seconds after last change, for existing resumes only)
-  useEffect(() => {
-    if (isDirty && !isNewResume && resumeId) {
-      // Clear previous timer
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-
-      // Set new timer
-      autoSaveTimerRef.current = setTimeout(() => {
-        autoSave();
-      }, 2000); // 2 seconds
-    }
-
-    // Cleanup
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty && !isNewResume) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
       }
     };
-  }, [isDirty, isNewResume, resumeId]); // ✅ Removed formData AND autoSave - only isDirty should trigger auto-save!
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, isNewResume]);
 
   // Show loading state - AFTER all hooks!
   if (isLoading) {
@@ -187,7 +149,6 @@ function ResumeEditorContent() {
       return;
     }
 
-    setIsSaving(true);
     const createToast = toast.loading('Creating your resume...');
 
     try {
@@ -234,7 +195,6 @@ function ResumeEditorContent() {
         await saveSkills(currentResumeId, formData.skills);
       }
 
-      setIsSaving(false);
       toast.success('Resume created successfully! 🎉', {
         id: createToast,
         description: 'Redirecting to dashboard...',
@@ -246,7 +206,6 @@ function ResumeEditorContent() {
       }, 500);
     } catch (error) {
       console.error('❌ Create failed:', error);
-      setIsSaving(false);
       toast.error('Failed to create resume', {
         id: createToast,
         description: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -254,45 +213,74 @@ function ResumeEditorContent() {
     }
   };
 
-  const handleDownloadPDF = () => {
-    const element = document.getElementById('resume-preview');
-    if (!element) {
-      toast.error('Preview not available', {
-        description: 'Please open the preview panel first',
-      });
-      return;
+  // Handle PDF download (save changes first if needed)
+  const handleDownloadPDF = async () => {
+    try {
+      // Save changes if resume exists and has unsaved changes
+      if (!isNewResume && isDirty && resumeId) {
+        const saveToast = toast.loading('Saving changes...');
+        await saveAllData();
+        toast.dismiss(saveToast);
+      }
+
+      const element = document.getElementById('resume-preview');
+      if (!element) {
+        toast.error('Preview not available', {
+          description: 'Please open the preview panel first',
+        });
+        return;
+      }
+
+      const fileName = formData.personalInfo?.name
+        ? `${formData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
+        : 'Resume.pdf';
+
+      const opt = {
+        margin: 0.5,
+        filename: fileName,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const },
+      };
+
+      const pdfToast = toast.loading('Generating PDF...');
+
+      html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(() => {
+          toast.success('PDF downloaded! 📄', {
+            id: pdfToast,
+            description: `Saved as ${fileName}`,
+          });
+        })
+        .catch((error: Error) => {
+          toast.error('PDF generation failed', {
+            id: pdfToast,
+            description: error.message,
+          });
+        });
+    } catch (error) {
+      // Error already handled in saveAllData
+      console.error('PDF download cancelled:', error);
     }
+  };
 
-    const fileName = formData.personalInfo?.name
-      ? `${formData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`
-      : 'Resume.pdf';
-
-    const opt = {
-      margin: 0.5,
-      filename: fileName,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const },
-    };
-
-    toast.loading('Generating PDF...');
-
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .save()
-      .then(() => {
-        toast.dismiss();
-        toast.success('PDF downloaded! 📄', {
-          description: `Saved as ${fileName}`,
-        });
-      })
-      .catch((error: Error) => {
-        toast.dismiss();
-        toast.error('PDF generation failed', {
-          description: error.message,
-        });
-      });
+  // Handle navigation back to dashboard (save before leaving if needed)
+  const handleDashboardClick = async () => {
+    try {
+      // Save changes if resume exists and has unsaved changes
+      if (!isNewResume && isDirty && resumeId) {
+        const saveToast = toast.loading('Saving changes...');
+        await saveAllData();
+        toast.dismiss(saveToast);
+      }
+      navigate('/');
+    } catch {
+      // Error already shown in saveAllData, stay on page
+      console.error('Navigation cancelled due to save error');
+    }
   };
 
   const renderSection = () => {
@@ -321,13 +309,12 @@ function ResumeEditorContent() {
       showPreview={showPreview}
       onTogglePreview={() => setShowPreview(!showPreview)}
       previewPanel={<ResumePreview />}
-      isSaving={isSaving}
-      lastSaved={lastSaved}
       isCreateEnabled={isCreateEnabled}
       onCreate={handleCreate}
       isNewResume={isNewResume}
       resumeId={resumeId}
       onDownloadPDF={handleDownloadPDF}
+      onDashboardClick={handleDashboardClick}
     >
       {renderSection()}
     </ResumeEditorLayout>

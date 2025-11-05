@@ -8,7 +8,6 @@ import { z } from 'zod';
 import type { Skill } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
 import { Plus, Trash2, Wrench } from 'lucide-react';
 
 // Array schema for form
@@ -55,15 +54,11 @@ export default function SkillsSection() {
     }
   }, []); // Only run once
 
-  const debouncedUpdate = useDebouncedCallback((skills: Skill[]) => {
-    updateFormData('skills', skills);
-  }, 300);
-
   useEffect(() => {
     if (watchedSkills && watchedSkills.length > 0) {
-      debouncedUpdate(watchedSkills as Skill[]);
+      updateFormData('skills', watchedSkills as Skill[]);
     }
-  }, [watchedSkills, debouncedUpdate]);
+  }, [watchedSkills, updateFormData]);
 
   const handleAdd = () => {
     append({
