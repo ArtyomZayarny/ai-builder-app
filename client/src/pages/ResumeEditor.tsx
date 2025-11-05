@@ -216,11 +216,9 @@ function ResumeEditorContent() {
   // Handle PDF download (save changes first if needed)
   const handleDownloadPDF = async () => {
     try {
-      // Save changes if resume exists and has unsaved changes
+      // Save changes silently if resume exists and has unsaved changes
       if (!isNewResume && isDirty && resumeId) {
-        const saveToast = toast.loading('Saving changes...');
         await saveAllData();
-        toast.dismiss(saveToast);
       }
 
       const element = document.getElementById('resume-preview');
@@ -270,11 +268,9 @@ function ResumeEditorContent() {
   // Handle navigation back to dashboard (save before leaving if needed)
   const handleDashboardClick = async () => {
     try {
-      // Save changes if resume exists and has unsaved changes
+      // Save changes silently if resume exists and has unsaved changes
       if (!isNewResume && isDirty && resumeId) {
-        const saveToast = toast.loading('Saving changes...');
         await saveAllData();
-        toast.dismiss(saveToast);
       }
       navigate('/');
     } catch {
