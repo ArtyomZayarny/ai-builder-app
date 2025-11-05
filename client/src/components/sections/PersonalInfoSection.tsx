@@ -7,11 +7,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonalInfoSchema, type PersonalInfo } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 export default function PersonalInfoSection() {
   const { formData, updateFormData } = useResumeForm();
+  const isInitialLoadRef = useRef(true); // Track if this is initial data load
 
   const {
     register,
@@ -31,6 +32,10 @@ export default function PersonalInfoSection() {
       Object.entries(formData.personalInfo).forEach(([key, value]) => {
         setValue(key as keyof PersonalInfo, value);
       });
+      // Mark as loaded after a small delay (to let setValue complete)
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 100);
     }
   }, []); // Only run once on mount
 
@@ -40,7 +45,8 @@ export default function PersonalInfoSection() {
   }, 300);
 
   useEffect(() => {
-    if (watchedData) {
+    // ✅ Don't update context during initial load - only when user actually types
+    if (watchedData && !isInitialLoadRef.current) {
       debouncedUpdate(watchedData);
     }
   }, [watchedData, debouncedUpdate]);

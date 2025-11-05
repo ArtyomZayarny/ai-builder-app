@@ -7,12 +7,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SummarySchema, type Summary } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 export default function SummarySection() {
   const { formData, updateFormData } = useResumeForm();
   const [charCount, setCharCount] = useState(0);
+  const isInitialLoadRef = useRef(true); // Track if this is initial data load
 
   const {
     register,
@@ -34,6 +35,10 @@ export default function SummarySection() {
   useEffect(() => {
     if (formData.summary) {
       setValue('content', formData.summary.content || '');
+      // Mark as loaded after a small delay (to let setValue complete)
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 100);
     }
   }, []); // Only run once on mount
 
@@ -43,7 +48,8 @@ export default function SummarySection() {
   }, 300);
 
   useEffect(() => {
-    if (summaryContent) {
+    // ✅ Don't update context during initial load - only when user actually types
+    if (summaryContent && !isInitialLoadRef.current) {
       debouncedUpdate(summaryContent);
     }
   }, [summaryContent, debouncedUpdate]);
