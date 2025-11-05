@@ -3,7 +3,15 @@
  * Global form state management for resume data
  */
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode,
+  useEffect,
+} from 'react';
 import { useParams } from 'react-router-dom';
 
 interface ResumeFormData {
@@ -26,7 +34,7 @@ interface ResumeFormData {
 
 interface ResumeFormContextValue {
   formData: ResumeFormData;
-  updateFormData: (section: keyof ResumeFormData, data: any) => void;
+  updateFormData: <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => void;
   isDirty: boolean;
   setIsDirty: (dirty: boolean) => void;
   isSaving: boolean;
@@ -73,26 +81,33 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateFormData = useCallback((section: keyof ResumeFormData, data: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: data,
-    }));
-    setIsDirty(true);
-  }, []);
+  const updateFormData = useCallback(
+    <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => {
+      setFormData(prev => ({
+        ...prev,
+        [section]: data,
+      }));
+      setIsDirty(true);
+    },
+    []
+  );
 
-  const value: ResumeFormContextValue = {
-    formData,
-    updateFormData,
-    isDirty,
-    setIsDirty,
-    isSaving,
-    setIsSaving,
-    isLoading,
-    error,
-    resumeId,
-    isNewResume,
-  };
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<ResumeFormContextValue>(
+    () => ({
+      formData,
+      updateFormData,
+      isDirty,
+      setIsDirty,
+      isSaving,
+      setIsSaving,
+      isLoading,
+      error,
+      resumeId,
+      isNewResume,
+    }),
+    [formData, updateFormData, isDirty, isSaving, isLoading, error, resumeId, isNewResume]
+  );
 
   return <ResumeFormContext.Provider value={value}>{children}</ResumeFormContext.Provider>;
 }

@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonalInfoSchema, type PersonalInfo } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 export default function PersonalInfoSection() {
   const { formData, updateFormData } = useResumeForm();
@@ -30,12 +31,16 @@ export default function PersonalInfoSection() {
     }
   }, [formData.personalInfo, setValue]);
 
-  const onFieldChange = (field: keyof PersonalInfo, value: string) => {
-    updateFormData('personalInfo', {
-      ...formData.personalInfo,
-      [field]: value,
-    });
-  };
+  // Debounced update - only update context after user stops typing (300ms delay)
+  const debouncedUpdate = useDebouncedCallback(
+    (field: keyof PersonalInfo, value: string) => {
+      updateFormData('personalInfo', {
+        ...formData.personalInfo,
+        [field]: value,
+      });
+    },
+    300 // 300ms delay
+  );
 
   return (
     <div className="space-y-6">
@@ -52,7 +57,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('name', {
-              onChange: e => onFieldChange('name', e.target.value),
+              onChange: e => debouncedUpdate('name', e.target.value),
             })}
             type="text"
             id="name"
@@ -71,7 +76,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('role', {
-              onChange: e => onFieldChange('role', e.target.value),
+              onChange: e => debouncedUpdate('role', e.target.value),
             })}
             type="text"
             id="role"
@@ -90,7 +95,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('email', {
-              onChange: e => onFieldChange('email', e.target.value),
+              onChange: e => debouncedUpdate('email', e.target.value),
             })}
             type="email"
             id="email"
@@ -109,7 +114,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('phone', {
-              onChange: e => onFieldChange('phone', e.target.value),
+              onChange: e => debouncedUpdate('phone', e.target.value),
             })}
             type="tel"
             id="phone"
@@ -128,7 +133,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('location', {
-              onChange: e => onFieldChange('location', e.target.value),
+              onChange: e => debouncedUpdate('location', e.target.value),
             })}
             type="text"
             id="location"
@@ -149,7 +154,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('linkedinUrl', {
-              onChange: e => onFieldChange('linkedinUrl', e.target.value),
+              onChange: e => debouncedUpdate('linkedinUrl', e.target.value),
             })}
             type="url"
             id="linkedinUrl"
@@ -170,7 +175,7 @@ export default function PersonalInfoSection() {
           </label>
           <input
             {...register('portfolioUrl', {
-              onChange: e => onFieldChange('portfolioUrl', e.target.value),
+              onChange: e => debouncedUpdate('portfolioUrl', e.target.value),
             })}
             type="url"
             id="portfolioUrl"

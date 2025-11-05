@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SummarySchema, type Summary } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 export default function SummarySection() {
   const { formData, updateFormData } = useResumeForm();
@@ -36,9 +37,10 @@ export default function SummarySection() {
     }
   }, [formData.summary, setValue]);
 
-  const onFieldChange = (value: string) => {
+  // Debounced update - only update context after user stops typing (300ms delay)
+  const debouncedUpdate = useDebouncedCallback((value: string) => {
     updateFormData('summary', { content: value });
-  };
+  }, 300);
 
   return (
     <div className="space-y-6">
@@ -55,7 +57,7 @@ export default function SummarySection() {
           </label>
           <textarea
             {...register('content', {
-              onChange: e => onFieldChange(e.target.value),
+              onChange: e => debouncedUpdate(e.target.value),
             })}
             id="content"
             rows={8}
