@@ -25,6 +25,51 @@ import {
 
 import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
 
+// ✅ Move loading logic OUTSIDE component - stable reference, no useCallback needed
+async function fetchResumeData(id: string) {
+  console.log('🔄 Loading resume data for ID:', id);
+
+  // Load all data in parallel
+  const [personalInfoRes, summaryRes, experiencesRes, educationRes, projectsRes, skillsRes] =
+    await Promise.allSettled([
+      getPersonalInfo(id),
+      getSummary(id),
+      getExperiences(id),
+      getEducation(id),
+      getProjects(id),
+      getSkills(id),
+    ]);
+
+  // Return structured data
+  return {
+    personalInfo:
+      personalInfoRes.status === 'fulfilled' && personalInfoRes.value
+        ? {
+            name: personalInfoRes.value.name || '',
+            role: personalInfoRes.value.role || '',
+            email: personalInfoRes.value.email || '',
+            phone: personalInfoRes.value.phone || '',
+            location: personalInfoRes.value.location || '',
+            linkedinUrl: personalInfoRes.value.linkedin_url || '',
+            portfolioUrl: personalInfoRes.value.portfolio_url || '',
+          }
+        : undefined,
+    summary:
+      summaryRes.status === 'fulfilled' && summaryRes.value
+        ? { content: summaryRes.value.content || '' }
+        : undefined,
+    experiences:
+      experiencesRes.status === 'fulfilled' && experiencesRes.value
+        ? experiencesRes.value
+        : undefined,
+    education:
+      educationRes.status === 'fulfilled' && educationRes.value ? educationRes.value : undefined,
+    projects:
+      projectsRes.status === 'fulfilled' && projectsRes.value ? projectsRes.value : undefined,
+    skills: skillsRes.status === 'fulfilled' && skillsRes.value ? skillsRes.value : undefined,
+  };
+}
+
 interface ResumeFormData {
   // Personal Info
   personalInfo?: {
@@ -78,83 +123,36 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null); // Track which resume is currently loading
 
-  // Load resume data - stable function, doesn't depend on props/state
-  const loadResumeData = useCallback(
-    async (id: string) => {
-      // Prevent duplicate loads
-      if (loadingRef.current === id) {
-        console.log('⏭️ Already loading resume:', id);
-        return;
-      }
+  // ✅ Load resume data on mount if editing existing resume
+  // Function outside component = stable, no need for useCallback or deps array gymnastics
+  useEffect(() => {
+    if (isNewResume || !resumeId) return;
 
-      console.log('🔄 Loading resume data for ID:', id);
-      loadingRef.current = id;
-      setIsLoading(true);
-      setError(null);
+    // Prevent duplicate loads (React StrictMode calls effects twice)
+    if (loadingRef.current === resumeId) {
+      console.log('⏭️ Already loading resume:', resumeId);
+      return;
+    }
 
-      try {
-        // ✅ Load all data in parallel (6 requests simultaneously)
-        const [personalInfoRes, summaryRes, experiencesRes, educationRes, projectsRes, skillsRes] =
-          await Promise.allSettled([
-            getPersonalInfo(id),
-            getSummary(id),
-            getExperiences(id),
-            getEducation(id),
-            getProjects(id),
-            getSkills(id),
-          ]);
+    loadingRef.current = resumeId;
+    setIsLoading(true);
+    setError(null);
 
-        // ✅ ONE setState call → ONE re-render (instead of 6)
-        setFormData({
-          personalInfo:
-            personalInfoRes.status === 'fulfilled' && personalInfoRes.value
-              ? {
-                  name: personalInfoRes.value.name || '',
-                  role: personalInfoRes.value.role || '',
-                  email: personalInfoRes.value.email || '',
-                  phone: personalInfoRes.value.phone || '',
-                  location: personalInfoRes.value.location || '',
-                  linkedinUrl: personalInfoRes.value.linkedin_url || '',
-                  portfolioUrl: personalInfoRes.value.portfolio_url || '',
-                }
-              : undefined,
-          summary:
-            summaryRes.status === 'fulfilled' && summaryRes.value
-              ? { content: summaryRes.value.content || '' }
-              : undefined,
-          experiences:
-            experiencesRes.status === 'fulfilled' && experiencesRes.value
-              ? experiencesRes.value
-              : undefined,
-          education:
-            educationRes.status === 'fulfilled' && educationRes.value
-              ? educationRes.value
-              : undefined,
-          projects:
-            projectsRes.status === 'fulfilled' && projectsRes.value ? projectsRes.value : undefined,
-          skills: skillsRes.status === 'fulfilled' && skillsRes.value ? skillsRes.value : undefined,
-        });
-
+    // Call external function (stable reference)
+    fetchResumeData(resumeId)
+      .then(data => {
+        setFormData(data);
         console.log('✅ Resume loaded successfully in ONE render!');
-      } catch (err) {
+      })
+      .catch(err => {
         setError(err instanceof Error ? err.message : 'Failed to load resume data');
         console.error('❌ Failed to load resume data:', err);
         loadingRef.current = null; // Allow retry on error
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    },
-    [] // Empty deps - function is stable, doesn't use external variables
-  );
-
-  // Load resume data on mount if editing existing resume
-  useEffect(() => {
-    if (!isNewResume && resumeId) {
-      loadResumeData(resumeId);
-    }
-    // loadResumeData is stable (empty deps), so safe to omit from deps
-    // Only resumeId and isNewResume trigger re-load
-  }, [resumeId, isNewResume]);
+      });
+  }, [resumeId, isNewResume]); // ✅ Only resumeId and isNewResume - clean and clear!
 
   const updateFormData = useCallback(
     <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => {
