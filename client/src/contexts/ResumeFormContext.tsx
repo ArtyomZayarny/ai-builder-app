@@ -78,114 +78,117 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null); // Track which resume is currently loading
 
+  // Memoize loadResumeData to prevent infinite loops in useEffect
+  const loadResumeData = useCallback(
+    async (id: string) => {
+      // Prevent duplicate loads
+      if (loadingRef.current === id && isLoading) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      try {
+        console.log('Loading resume data for ID:', id);
+
+        // Load Personal Info
+        try {
+          const personalInfo = await getPersonalInfo(id);
+          if (personalInfo) {
+            setFormData(prev => ({
+              ...prev,
+              personalInfo: {
+                name: personalInfo.name || '',
+                role: personalInfo.role || '',
+                email: personalInfo.email || '',
+                phone: personalInfo.phone || '',
+                location: personalInfo.location || '',
+                linkedinUrl: personalInfo.linkedin_url || '',
+                portfolioUrl: personalInfo.portfolio_url || '',
+              },
+            }));
+          }
+        } catch (err) {
+          console.warn('No personal info found:', err);
+        }
+
+        // Load Summary
+        try {
+          const summary = await getSummary(id);
+          if (summary) {
+            setFormData(prev => ({
+              ...prev,
+              summary: {
+                content: summary.content || '',
+              },
+            }));
+          }
+        } catch (err) {
+          console.warn('No summary found:', err);
+        }
+
+        // Load Experiences
+        try {
+          const experiences = await getExperiences(id);
+          if (experiences && experiences.length > 0) {
+            setFormData(prev => ({ ...prev, experiences }));
+          }
+        } catch (err) {
+          console.warn('No experiences found:', err);
+        }
+
+        // Load Education
+        try {
+          const education = await getEducation(id);
+          if (education && education.length > 0) {
+            setFormData(prev => ({ ...prev, education }));
+          }
+        } catch (err) {
+          console.warn('No education found:', err);
+        }
+
+        // Load Projects
+        try {
+          const projects = await getProjects(id);
+          if (projects && projects.length > 0) {
+            setFormData(prev => ({ ...prev, projects }));
+          }
+        } catch (err) {
+          console.warn('No projects found:', err);
+        }
+
+        // Load Skills
+        try {
+          const skills = await getSkills(id);
+          if (skills && skills.length > 0) {
+            setFormData(prev => ({ ...prev, skills }));
+          }
+        } catch (err) {
+          console.warn('No skills found:', err);
+        }
+
+        console.log('✅ Resume data loaded successfully!');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load resume data');
+        console.error('❌ Failed to load resume data:', err);
+      } finally {
+        setIsLoading(false);
+        // Reset loading ref after completion (only if still loading the same resume)
+        if (loadingRef.current === id) {
+          loadingRef.current = null;
+        }
+      }
+    },
+    [isLoading] // Include isLoading since it's used in the guard clause
+  );
+
   // Load resume data if editing existing resume
-  // Note: loadResumeData is not in deps because we use ref to prevent duplicate calls
   useEffect(() => {
     if (!isNewResume && resumeId && loadingRef.current !== resumeId) {
       loadingRef.current = resumeId; // Mark as loading
       loadResumeData(resumeId);
     }
-  }, [resumeId, isNewResume]);
-
-  const loadResumeData = async (id: string) => {
-    // Prevent duplicate loads
-    if (loadingRef.current === id && isLoading) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log('Loading resume data for ID:', id);
-
-      // Load Personal Info
-      try {
-        const personalInfo = await getPersonalInfo(id);
-        if (personalInfo) {
-          setFormData(prev => ({
-            ...prev,
-            personalInfo: {
-              name: personalInfo.name || '',
-              role: personalInfo.role || '',
-              email: personalInfo.email || '',
-              phone: personalInfo.phone || '',
-              location: personalInfo.location || '',
-              linkedinUrl: personalInfo.linkedin_url || '',
-              portfolioUrl: personalInfo.portfolio_url || '',
-            },
-          }));
-        }
-      } catch (err) {
-        console.warn('No personal info found:', err);
-      }
-
-      // Load Summary
-      try {
-        const summary = await getSummary(id);
-        if (summary) {
-          setFormData(prev => ({
-            ...prev,
-            summary: {
-              content: summary.content || '',
-            },
-          }));
-        }
-      } catch (err) {
-        console.warn('No summary found:', err);
-      }
-
-      // Load Experiences
-      try {
-        const experiences = await getExperiences(id);
-        if (experiences && experiences.length > 0) {
-          setFormData(prev => ({ ...prev, experiences }));
-        }
-      } catch (err) {
-        console.warn('No experiences found:', err);
-      }
-
-      // Load Education
-      try {
-        const education = await getEducation(id);
-        if (education && education.length > 0) {
-          setFormData(prev => ({ ...prev, education }));
-        }
-      } catch (err) {
-        console.warn('No education found:', err);
-      }
-
-      // Load Projects
-      try {
-        const projects = await getProjects(id);
-        if (projects && projects.length > 0) {
-          setFormData(prev => ({ ...prev, projects }));
-        }
-      } catch (err) {
-        console.warn('No projects found:', err);
-      }
-
-      // Load Skills
-      try {
-        const skills = await getSkills(id);
-        if (skills && skills.length > 0) {
-          setFormData(prev => ({ ...prev, skills }));
-        }
-      } catch (err) {
-        console.warn('No skills found:', err);
-      }
-
-      console.log('✅ Resume data loaded successfully!');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load resume data');
-      console.error('❌ Failed to load resume data:', err);
-    } finally {
-      setIsLoading(false);
-      // Reset loading ref after completion (only if still loading the same resume)
-      if (loadingRef.current === id) {
-        loadingRef.current = null;
-      }
-    }
-  };
+  }, [resumeId, isNewResume, loadResumeData]); // Now we can safely include loadResumeData
 
   const updateFormData = useCallback(
     <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => {
