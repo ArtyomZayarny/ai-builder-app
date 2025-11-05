@@ -33,12 +33,16 @@ export default function SummarySection() {
 
   // Update form when data loads from API (only once)
   useEffect(() => {
-    if (formData.summary) {
-      setValue('content', formData.summary.content || '');
+    if (formData.summary && formData.summary.content) {
+      // Existing resume - populate form
+      setValue('content', formData.summary.content);
       // Mark as loaded after a small delay (to let setValue complete)
       setTimeout(() => {
         isInitialLoadRef.current = false;
       }, 100);
+    } else {
+      // New resume - enable immediate updates
+      isInitialLoadRef.current = false;
     }
   }, []); // Only run once on mount
 

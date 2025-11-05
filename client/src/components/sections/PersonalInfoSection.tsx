@@ -25,7 +25,8 @@ export default function PersonalInfoSection() {
 
   // Update form when data loads from API (only once)
   useEffect(() => {
-    if (formData.personalInfo) {
+    if (formData.personalInfo && Object.keys(formData.personalInfo).length > 0) {
+      // Existing resume - populate form
       Object.entries(formData.personalInfo).forEach(([key, value]) => {
         setValue(key as keyof PersonalInfo, value);
       });
@@ -33,6 +34,9 @@ export default function PersonalInfoSection() {
       setTimeout(() => {
         isInitialLoadRef.current = false;
       }, 100);
+    } else {
+      // New resume - enable immediate updates
+      isInitialLoadRef.current = false;
     }
   }, []); // Only run once on mount
 
