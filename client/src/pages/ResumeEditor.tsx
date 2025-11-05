@@ -46,36 +46,6 @@ function ResumeEditorContent() {
     error,
   } = useResumeForm();
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center animate-fade-in">
-          <Loader2 size={48} className="text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg font-medium">Loading resume data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="card max-w-md w-full p-8 text-center animate-slide-up">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle size={32} className="text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Resume</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={() => navigate('/')} className="btn-primary w-full">
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Check if all required fields are filled
   const isCreateEnabled = Boolean(
     formData.personalInfo?.name?.trim() &&
@@ -84,6 +54,7 @@ function ResumeEditorContent() {
   );
 
   // Auto-save to local state only (for existing resumes)
+  // IMPORTANT: All hooks must be declared BEFORE any early returns!
   const autoSave = useCallback(async () => {
     // Only auto-save for existing resumes (not new ones)
     if (isNewResume || !resumeId) {
@@ -176,6 +147,36 @@ function ResumeEditorContent() {
       }
     };
   }, [isDirty, formData, isNewResume, resumeId, autoSave]);
+
+  // Show loading state - AFTER all hooks!
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <Loader2 size={48} className="text-primary-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg font-medium">Loading resume data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state - AFTER all hooks!
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="card max-w-md w-full p-8 text-center animate-slide-up">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={32} className="text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Resume</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={() => navigate('/')} className="btn-primary w-full">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Handle Create - creates resume in DB and redirects to dashboard
   const handleCreate = async () => {

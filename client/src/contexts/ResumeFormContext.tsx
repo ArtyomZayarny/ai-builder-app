@@ -9,6 +9,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
   ReactNode,
   useEffect,
 } from 'react';
@@ -75,15 +76,23 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadingRef = useRef<string | null>(null); // Track which resume is currently loading
 
   // Load resume data if editing existing resume
+  // Note: loadResumeData is not in deps because we use ref to prevent duplicate calls
   useEffect(() => {
-    if (!isNewResume && resumeId) {
+    if (!isNewResume && resumeId && loadingRef.current !== resumeId) {
+      loadingRef.current = resumeId; // Mark as loading
       loadResumeData(resumeId);
     }
   }, [resumeId, isNewResume]);
 
   const loadResumeData = async (id: string) => {
+    // Prevent duplicate loads
+    if (loadingRef.current === id && isLoading) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -171,6 +180,10 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       console.error('❌ Failed to load resume data:', err);
     } finally {
       setIsLoading(false);
+      // Reset loading ref after completion (only if still loading the same resume)
+      if (loadingRef.current === id) {
+        loadingRef.current = null;
+      }
     }
   };
 
