@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run build --prefix ../shared",
     "build": "vite build",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
