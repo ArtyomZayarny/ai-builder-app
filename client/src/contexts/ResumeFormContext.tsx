@@ -13,7 +13,16 @@ import {
   useEffect,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { getPersonalInfo, getSummary } from '../services/resumeApi';
+import {
+  getPersonalInfo,
+  getSummary,
+  getExperiences,
+  getEducation,
+  getProjects,
+  getSkills,
+} from '../services/resumeApi';
+
+import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
 
 interface ResumeFormData {
   // Personal Info
@@ -30,7 +39,14 @@ interface ResumeFormData {
   summary?: {
     content?: string;
   };
-  // Experiences, Education, Projects, Skills will be added later
+  // Work Experience
+  experiences?: Experience[];
+  // Education
+  education?: Education[];
+  // Projects
+  projects?: Project[];
+  // Skills
+  skills?: Skill[];
 }
 
 interface ResumeFormContextValue {
@@ -107,6 +123,46 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.warn('No summary found:', err);
+      }
+
+      // Load Experiences
+      try {
+        const experiences = await getExperiences(id);
+        if (experiences && experiences.length > 0) {
+          setFormData(prev => ({ ...prev, experiences }));
+        }
+      } catch (err) {
+        console.warn('No experiences found:', err);
+      }
+
+      // Load Education
+      try {
+        const education = await getEducation(id);
+        if (education && education.length > 0) {
+          setFormData(prev => ({ ...prev, education }));
+        }
+      } catch (err) {
+        console.warn('No education found:', err);
+      }
+
+      // Load Projects
+      try {
+        const projects = await getProjects(id);
+        if (projects && projects.length > 0) {
+          setFormData(prev => ({ ...prev, projects }));
+        }
+      } catch (err) {
+        console.warn('No projects found:', err);
+      }
+
+      // Load Skills
+      try {
+        const skills = await getSkills(id);
+        if (skills && skills.length > 0) {
+          setFormData(prev => ({ ...prev, skills }));
+        }
+      } catch (err) {
+        console.warn('No skills found:', err);
       }
 
       console.log('✅ Resume data loaded successfully!');

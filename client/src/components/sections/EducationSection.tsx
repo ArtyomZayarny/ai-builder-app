@@ -1,19 +1,209 @@
 /**
- * Education Section
- * Education entries with CRUD operations
+ * Education Section - FIXED
  */
 
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { Education } from '@resume-builder/shared';
+import { useResumeForm } from '../../contexts/ResumeFormContext';
+import { useEffect } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import { Plus, Trash2, GraduationCap } from 'lucide-react';
+
+// Array schema for form
+const FormSchema = z.object({
+  education: z.array(
+    z.object({
+      id: z.number().optional(),
+      institution: z.string(),
+      degree: z.string(),
+      field: z.string().optional(),
+      location: z.string().optional(),
+      graduationDate: z.string(),
+      gpa: z.string().optional(),
+      order: z.number().optional(),
+    })
+  ),
+});
+
+type FormData = z.infer<typeof FormSchema>;
+
 export default function EducationSection() {
+  const { formData, updateFormData } = useResumeForm();
+
+  const {
+    register,
+    control,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<FormData>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      education: formData.education || [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'education',
+  });
+
+  const watchedEducation = watch('education');
+
+  useEffect(() => {
+    if (formData.education && formData.education.length > 0) {
+      setValue('education', formData.education as any);
+    }
+  }, [formData.education, setValue]);
+
+  const debouncedUpdate = useDebouncedCallback((education: Education[]) => {
+    updateFormData('education', education);
+  }, 300);
+
+  useEffect(() => {
+    if (watchedEducation) {
+      debouncedUpdate(watchedEducation as Education[]);
+    }
+  }, [watchedEducation, debouncedUpdate]);
+
+  const handleAdd = () => {
+    append({
+      institution: '',
+      degree: '',
+      field: '',
+      location: '',
+      graduationDate: '',
+      gpa: '',
+      order: fields.length,
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Education</h2>
-        <p className="text-gray-600">Your academic background</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Education</h2>
+          <p className="text-gray-600">Your academic background</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <Plus size={20} />
+          Add Education
+        </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-        <p className="text-gray-500 text-center py-8">Form implementation coming next! 🚀</p>
-      </div>
+      {fields.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <GraduationCap size={48} className="mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No education added yet</h3>
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus size={20} />
+            Add Education
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {fields.map((field, index) => (
+            <div key={field.id} className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Education {index + 1}</h3>
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Institution <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register(`education.${index}.institution`)}
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., Stanford University"
+                  />
+                  {errors.education?.[index]?.institution && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.education[index]?.institution?.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Degree <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register(`education.${index}.degree`)}
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., Bachelor of Science"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Field of Study <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register(`education.${index}.field`)}
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., Computer Science"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <input
+                    {...register(`education.${index}.location`)}
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., Palo Alto, CA"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Graduation Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register(`education.${index}.graduationDate`)}
+                    type="month"
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    GPA (Optional)
+                  </label>
+                  <input
+                    {...register(`education.${index}.gpa`)}
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., 3.8/4.0"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

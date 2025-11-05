@@ -191,3 +191,121 @@ export const getSummary = async (resumeId: number | string): Promise<any> => {
   const data: ApiResponse<any> = await response.json();
   return data.data;
 };
+
+/**
+ * Save/Get Experiences
+ */
+export const saveExperiences = async (
+  resumeId: number | string,
+  experiences: any[]
+): Promise<void> => {
+  // Delete existing and create new (simpler approach for MVP)
+  for (const exp of experiences) {
+    if (exp.id) {
+      // Update existing
+      await fetch(`${API_BASE}/${resumeId}/experiences/${exp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exp),
+      });
+    } else {
+      // Create new
+      await fetch(`${API_BASE}/${resumeId}/experiences`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exp),
+      });
+    }
+  }
+};
+
+export const getExperiences = async (resumeId: number | string): Promise<any[]> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/experiences`);
+  if (!response.ok) throw new Error('Failed to fetch experiences');
+  const data: ApiResponse<any[]> = await response.json();
+  return data.data || [];
+};
+
+/**
+ * Save/Get Education
+ */
+export const saveEducation = async (resumeId: number | string, education: any[]): Promise<void> => {
+  for (const edu of education) {
+    if (edu.id) {
+      await fetch(`${API_BASE}/${resumeId}/education/${edu.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(edu),
+      });
+    } else {
+      await fetch(`${API_BASE}/${resumeId}/education`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(edu),
+      });
+    }
+  }
+};
+
+export const getEducation = async (resumeId: number | string): Promise<any[]> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/education`);
+  if (!response.ok) throw new Error('Failed to fetch education');
+  const data: ApiResponse<any[]> = await response.json();
+  return data.data || [];
+};
+
+/**
+ * Save/Get Projects
+ */
+export const saveProjects = async (resumeId: number | string, projects: any[]): Promise<void> => {
+  for (const project of projects) {
+    if (project.id) {
+      await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+      });
+    } else {
+      await fetch(`${API_BASE}/${resumeId}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+      });
+    }
+  }
+};
+
+export const getProjects = async (resumeId: number | string): Promise<any[]> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/projects`);
+  if (!response.ok) throw new Error('Failed to fetch projects');
+  const data: ApiResponse<any[]> = await response.json();
+  return data.data || [];
+};
+
+/**
+ * Save/Get Skills
+ */
+export const saveSkills = async (resumeId: number | string, skills: any[]): Promise<void> => {
+  for (const skill of skills) {
+    if (skill.id) {
+      await fetch(`${API_BASE}/${resumeId}/skills/${skill.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(skill),
+      });
+    } else {
+      await fetch(`${API_BASE}/${resumeId}/skills`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(skill),
+      });
+    }
+  }
+};
+
+export const getSkills = async (resumeId: number | string): Promise<any[]> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/skills`);
+  if (!response.ok) throw new Error('Failed to fetch skills');
+  const data: ApiResponse<any[]> = await response.json();
+  return data.data || [];
+};

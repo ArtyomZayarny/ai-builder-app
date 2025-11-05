@@ -14,7 +14,15 @@ import ExperienceSection from '../components/sections/ExperienceSection';
 import EducationSection from '../components/sections/EducationSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import SkillsSection from '../components/sections/SkillsSection';
-import { createResume, savePersonalInfo, saveSummary } from '../services/resumeApi';
+import {
+  createResume,
+  savePersonalInfo,
+  saveSummary,
+  saveExperiences,
+  saveEducation,
+  saveProjects,
+  saveSkills,
+} from '../services/resumeApi';
 
 function ResumeEditorContent() {
   const navigate = useNavigate();
@@ -132,6 +140,26 @@ function ResumeEditorContent() {
         await saveSummary(currentResumeId, {
           content: formData.summary.content,
         });
+      }
+
+      // Step 4: Save Experiences (if exists)
+      if (formData.experiences && formData.experiences.length > 0) {
+        await saveExperiences(currentResumeId, formData.experiences);
+      }
+
+      // Step 5: Save Education (if exists)
+      if (formData.education && formData.education.length > 0) {
+        await saveEducation(currentResumeId, formData.education);
+      }
+
+      // Step 6: Save Projects (if exists)
+      if (formData.projects && formData.projects.length > 0) {
+        await saveProjects(currentResumeId, formData.projects);
+      }
+
+      // Step 7: Save Skills (if exists)
+      if (formData.skills && formData.skills.length > 0) {
+        await saveSkills(currentResumeId, formData.skills);
       }
 
       // Success!
