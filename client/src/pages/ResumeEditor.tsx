@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
 import ResumeEditorLayout from '../components/ResumeEditorLayout';
 import PersonalInfoSection from '../components/sections/PersonalInfoSection';
@@ -66,15 +67,37 @@ function ResumeEditorContent() {
   }
 
   const handleSave = async () => {
+    // Validate required fields
+    if (!formData.personalInfo?.name?.trim()) {
+      toast.error('Please enter your full name', {
+        description: 'Name is required to save your resume',
+      });
+      return;
+    }
+
+    if (!formData.personalInfo?.role?.trim()) {
+      toast.error('Please enter your professional role', {
+        description: 'Role/Title is required to save your resume',
+      });
+      return;
+    }
+
+    if (!formData.personalInfo?.email?.trim()) {
+      toast.error('Please enter your email address', {
+        description: 'Email is required to save your resume',
+      });
+      return;
+    }
+
     setIsSaving(true);
+    const saveToast = toast.loading('Saving your resume...');
+
     try {
       let currentResumeId = resumeId;
 
       // Step 1: Create resume if new
       if (isNewResume && !currentResumeId) {
-        const resumeTitle = formData.personalInfo?.name
-          ? `${formData.personalInfo.name}'s Resume`
-          : 'Untitled Resume';
+        const resumeTitle = `${formData.personalInfo.name}'s Resume`;
 
         const newResume = await createResume({
           title: resumeTitle,
@@ -93,21 +116,19 @@ function ResumeEditorContent() {
         throw new Error('Resume ID is required');
       }
 
-      // Step 2: Save Personal Info (if exists)
-      if (formData.personalInfo) {
-        await savePersonalInfo(currentResumeId, {
-          name: formData.personalInfo.name || '',
-          role: formData.personalInfo.role || '',
-          email: formData.personalInfo.email || '',
-          phone: formData.personalInfo.phone || '',
-          location: formData.personalInfo.location || '',
-          linkedinUrl: formData.personalInfo.linkedinUrl || '',
-          portfolioUrl: formData.personalInfo.portfolioUrl || '',
-        });
-      }
+      // Step 2: Save Personal Info
+      await savePersonalInfo(currentResumeId, {
+        name: formData.personalInfo.name,
+        role: formData.personalInfo.role,
+        email: formData.personalInfo.email,
+        phone: formData.personalInfo.phone || '',
+        location: formData.personalInfo.location || '',
+        linkedinUrl: formData.personalInfo.linkedinUrl || '',
+        portfolioUrl: formData.personalInfo.portfolioUrl || '',
+      });
 
       // Step 3: Save Summary (if exists)
-      if (formData.summary?.content) {
+      if (formData.summary?.content?.trim()) {
         await saveSummary(currentResumeId, {
           content: formData.summary.content,
         });
@@ -116,11 +137,17 @@ function ResumeEditorContent() {
       // Success!
       setIsSaving(false);
       setIsDirty(false);
-      console.log('✅ Resume saved successfully!');
+      toast.success('Resume saved successfully! 🎉', {
+        id: saveToast,
+        description: 'Your changes have been saved',
+      });
     } catch (error) {
       console.error('❌ Save failed:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save resume');
       setIsSaving(false);
+      toast.error('Failed to save resume', {
+        id: saveToast,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+      });
     }
   };
 
