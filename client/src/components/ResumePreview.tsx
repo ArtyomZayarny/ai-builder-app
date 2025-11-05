@@ -160,6 +160,7 @@ export default function ResumePreview() {
             {(() => {
               const grouped = skills.reduce(
                 (acc, skill) => {
+                  if (!skill.name) return acc; // Skip skills without names
                   const category = skill.category || 'Other';
                   if (!acc[category]) acc[category] = [];
                   acc[category].push(skill.name);

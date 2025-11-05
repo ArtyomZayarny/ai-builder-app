@@ -2,10 +2,11 @@ import { z } from 'zod';
 
 /**
  * Base Skill Schema
+ * All fields are optional to allow partial resumes
  */
 const SkillBaseSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, 'Skill name is required').max(100),
+  name: z.string().max(100).optional(),
   category: z.string().max(100).optional().or(z.literal('')),
   order: z.number().int().min(0).default(0),
 });

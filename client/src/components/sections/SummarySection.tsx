@@ -67,7 +67,7 @@ export default function SummarySection() {
         {/* Summary Textarea */}
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-            Professional Summary <span className="text-red-500">*</span>
+            Professional Summary
           </label>
           <textarea
             {...register('content', { onChange: handleFieldChange })}

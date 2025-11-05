@@ -124,7 +124,7 @@ export default function EducationSection() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Institution <span className="text-red-500">*</span>
+                    Institution
                   </label>
                   <input
                     {...register(`education.${index}.institution`)}
@@ -140,9 +140,7 @@ export default function EducationSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Degree <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
                   <input
                     {...register(`education.${index}.degree`)}
                     type="text"
@@ -153,7 +151,7 @@ export default function EducationSection() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Field of Study <span className="text-red-500">*</span>
+                    Field of Study
                   </label>
                   <input
                     {...register(`education.${index}.field`)}
@@ -175,7 +173,7 @@ export default function EducationSection() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Graduation Date <span className="text-red-500">*</span>
+                    Graduation Date
                   </label>
                   <input
                     {...register(`education.${index}.graduationDate`)}

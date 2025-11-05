@@ -135,7 +135,7 @@ export default function ProjectsSection() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project Name <span className="text-red-500">*</span>
+                    Project Name
                   </label>
                   <input
                     {...register(`projects.${index}.name`)}
@@ -147,7 +147,7 @@ export default function ProjectsSection() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Technologies <span className="text-red-500">*</span>
+                    Technologies
                   </label>
                   <input
                     {...register(`projects.${index}.technologies`)}
@@ -181,7 +181,7 @@ export default function ProjectsSection() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description <span className="text-red-500">*</span>
+                    Description
                   </label>
                   <textarea
                     {...register(`projects.${index}.description`)}

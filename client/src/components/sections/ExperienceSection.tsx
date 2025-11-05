@@ -126,9 +126,7 @@ export default function ExperienceSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
                   <input
                     {...register(`experiences.${index}.company`)}
                     type="text"
@@ -143,9 +141,7 @@ export default function ExperienceSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Job Title <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
                   <input
                     {...register(`experiences.${index}.role`)}
                     type="text"
@@ -165,9 +161,7 @@ export default function ExperienceSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                   <input
                     {...register(`experiences.${index}.startDate`)}
                     type="month"

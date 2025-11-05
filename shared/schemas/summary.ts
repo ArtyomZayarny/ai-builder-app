@@ -7,8 +7,8 @@ import { z } from 'zod';
 export const SummarySchema = z.object({
   content: z
     .string()
-    .min(50, 'Summary should be at least 50 characters')
-    .max(1000, 'Summary is too long (max 1000 characters)'),
+    .max(1000, 'Summary is too long (max 1000 characters)')
+    .optional(),
 });
 
 // For database updates

@@ -2,11 +2,12 @@ import { z } from 'zod';
 
 /**
  * Base Education Schema
+ * All fields are optional to allow partial resumes
  */
 const EducationBaseSchema = z.object({
   id: z.number().optional(),
-  institution: z.string().min(1, 'Institution name is required').max(255),
-  degree: z.string().min(1, 'Degree/certification is required').max(255),
+  institution: z.string().max(255).optional(),
+  degree: z.string().max(255).optional(),
   field: z.string().max(255).optional().or(z.literal('')),
   location: z.string().max(255).optional().or(z.literal('')),
   graduationDate: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format').optional().or(z.literal('')),
