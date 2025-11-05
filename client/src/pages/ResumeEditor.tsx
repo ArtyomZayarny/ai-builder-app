@@ -1,9 +1,9 @@
 /**
  * Resume Editor Page
- * Live editing with preview - creates record on first save
+ * Auto-saves on section change and after 2 seconds of inactivity
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -31,6 +31,9 @@ function ResumeEditorContent() {
   const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState('personal-info');
   const [showPreview, setShowPreview] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const {
     isDirty,
     isSaving,
@@ -39,7 +42,6 @@ function ResumeEditorContent() {
     formData,
     resumeId,
     isNewResume,
-    setResumeId,
     isLoading,
     error,
   } = useResumeForm();
@@ -74,106 +76,178 @@ function ResumeEditorContent() {
     );
   }
 
-  const handleSave = async () => {
-    // Validate required fields
-    if (!formData.personalInfo?.name?.trim()) {
-      toast.error('Please enter your full name', {
-        description: 'Name is required to save your resume',
-      });
+  // Check if all required fields are filled
+  const isCreateEnabled = Boolean(
+    formData.personalInfo?.name?.trim() &&
+      formData.personalInfo?.role?.trim() &&
+      formData.personalInfo?.email?.trim()
+  );
+
+  // Auto-save to local state only (for existing resumes)
+  const autoSave = useCallback(async () => {
+    // Only auto-save for existing resumes (not new ones)
+    if (isNewResume || !resumeId) {
       return;
     }
 
-    if (!formData.personalInfo?.role?.trim()) {
-      toast.error('Please enter your professional role', {
-        description: 'Role/Title is required to save your resume',
+    // Skip if already saving
+    if (isSaving) return;
+
+    setIsSaving(true);
+
+    try {
+      // Save Personal Info
+      if (formData.personalInfo) {
+        await savePersonalInfo(resumeId, {
+          name: formData.personalInfo.name || '',
+          role: formData.personalInfo.role || '',
+          email: formData.personalInfo.email || '',
+          phone: formData.personalInfo.phone || '',
+          location: formData.personalInfo.location || '',
+          linkedinUrl: formData.personalInfo.linkedinUrl || '',
+          portfolioUrl: formData.personalInfo.portfolioUrl || '',
+        });
+      }
+
+      // Save Summary (if exists)
+      if (formData.summary?.content?.trim()) {
+        await saveSummary(resumeId, {
+          content: formData.summary.content,
+        });
+      }
+
+      // Save Experiences (if exists)
+      if (formData.experiences && formData.experiences.length > 0) {
+        await saveExperiences(resumeId, formData.experiences);
+      }
+
+      // Save Education (if exists)
+      if (formData.education && formData.education.length > 0) {
+        await saveEducation(resumeId, formData.education);
+      }
+
+      // Save Projects (if exists)
+      if (formData.projects && formData.projects.length > 0) {
+        await saveProjects(resumeId, formData.projects);
+      }
+
+      // Save Skills (if exists)
+      if (formData.skills && formData.skills.length > 0) {
+        await saveSkills(resumeId, formData.skills);
+      }
+
+      setIsSaving(false);
+      setIsDirty(false);
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('❌ Auto-save failed:', error);
+      setIsSaving(false);
+      toast.error('Failed to auto-save', {
+        description: error instanceof Error ? error.message : 'Changes not saved',
       });
-      return;
+    }
+  }, [formData, resumeId, isNewResume, isSaving, setIsSaving, setIsDirty]);
+
+  // Auto-save on section change (for existing resumes only)
+  useEffect(() => {
+    if (isDirty && !isNewResume && resumeId) {
+      autoSave();
+    }
+  }, [currentSection, isDirty, isNewResume, resumeId, autoSave]);
+
+  // Auto-save with debounce (2 seconds after last change, for existing resumes only)
+  useEffect(() => {
+    if (isDirty && !isNewResume && resumeId) {
+      // Clear previous timer
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      // Set new timer
+      autoSaveTimerRef.current = setTimeout(() => {
+        autoSave();
+      }, 2000); // 2 seconds
     }
 
-    if (!formData.personalInfo?.email?.trim()) {
-      toast.error('Please enter your email address', {
-        description: 'Email is required to save your resume',
+    // Cleanup
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [isDirty, formData, isNewResume, resumeId, autoSave]);
+
+  // Handle Create - creates resume in DB and redirects to dashboard
+  const handleCreate = async () => {
+    if (!isCreateEnabled) {
+      toast.error('Please fill all required fields', {
+        description: 'Name, Role, and Email are required',
       });
       return;
     }
 
     setIsSaving(true);
-    const saveToast = toast.loading('Saving your resume...');
+    const createToast = toast.loading('Creating your resume...');
 
     try {
-      let currentResumeId = resumeId;
-
-      // Step 1: Create resume if new
-      if (isNewResume && !currentResumeId) {
-        const resumeTitle = `${formData.personalInfo.name}'s Resume`;
-
-        const newResume = await createResume({
-          title: resumeTitle,
-          template: 'classic',
-          accentColor: '#3B82F6',
-        });
-
-        currentResumeId = newResume.id.toString();
-        setResumeId(currentResumeId);
-
-        // Update URL to the new resume ID
-        navigate(`/resume/${currentResumeId}`, { replace: true });
-      }
-
-      if (!currentResumeId) {
-        throw new Error('Resume ID is required');
-      }
-
-      // Step 2: Save Personal Info
-      await savePersonalInfo(currentResumeId, {
-        name: formData.personalInfo.name,
-        role: formData.personalInfo.role,
-        email: formData.personalInfo.email,
-        phone: formData.personalInfo.phone || '',
-        location: formData.personalInfo.location || '',
-        linkedinUrl: formData.personalInfo.linkedinUrl || '',
-        portfolioUrl: formData.personalInfo.portfolioUrl || '',
+      // Step 1: Create resume
+      const resumeTitle = `${formData.personalInfo!.name}'s Resume`;
+      const newResume = await createResume({
+        title: resumeTitle,
+        template: 'classic',
+        accentColor: '#3B82F6',
       });
 
-      // Step 3: Save Summary (if exists)
+      const currentResumeId = newResume.id.toString();
+
+      // Step 2: Save all data
+      await savePersonalInfo(currentResumeId, {
+        name: formData.personalInfo!.name || '',
+        role: formData.personalInfo!.role || '',
+        email: formData.personalInfo!.email || '',
+        phone: formData.personalInfo!.phone || '',
+        location: formData.personalInfo!.location || '',
+        linkedinUrl: formData.personalInfo!.linkedinUrl || '',
+        portfolioUrl: formData.personalInfo!.portfolioUrl || '',
+      });
+
       if (formData.summary?.content?.trim()) {
         await saveSummary(currentResumeId, {
           content: formData.summary.content,
         });
       }
 
-      // Step 4: Save Experiences (if exists)
       if (formData.experiences && formData.experiences.length > 0) {
         await saveExperiences(currentResumeId, formData.experiences);
       }
 
-      // Step 5: Save Education (if exists)
       if (formData.education && formData.education.length > 0) {
         await saveEducation(currentResumeId, formData.education);
       }
 
-      // Step 6: Save Projects (if exists)
       if (formData.projects && formData.projects.length > 0) {
         await saveProjects(currentResumeId, formData.projects);
       }
 
-      // Step 7: Save Skills (if exists)
       if (formData.skills && formData.skills.length > 0) {
         await saveSkills(currentResumeId, formData.skills);
       }
 
-      // Success!
       setIsSaving(false);
-      setIsDirty(false);
-      toast.success('Resume saved successfully! 🎉', {
-        id: saveToast,
-        description: 'Your changes have been saved',
+      toast.success('Resume created successfully! 🎉', {
+        id: createToast,
+        description: 'Redirecting to dashboard...',
       });
+
+      // Redirect to dashboard after 500ms
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
     } catch (error) {
-      console.error('❌ Save failed:', error);
+      console.error('❌ Create failed:', error);
       setIsSaving(false);
-      toast.error('Failed to save resume', {
-        id: saveToast,
+      toast.error('Failed to create resume', {
+        id: createToast,
         description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     }
@@ -246,9 +320,12 @@ function ResumeEditorContent() {
       showPreview={showPreview}
       onTogglePreview={() => setShowPreview(!showPreview)}
       previewPanel={<ResumePreview />}
-      isDirty={isDirty}
       isSaving={isSaving}
-      onSave={handleSave}
+      lastSaved={lastSaved}
+      isCreateEnabled={isCreateEnabled}
+      onCreate={handleCreate}
+      isNewResume={isNewResume}
+      resumeId={resumeId}
       onDownloadPDF={handleDownloadPDF}
     >
       {renderSection()}

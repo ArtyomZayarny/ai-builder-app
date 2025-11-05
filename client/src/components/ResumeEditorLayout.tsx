@@ -1,10 +1,11 @@
 /**
  * Resume Editor Layout
  * Main layout with sidebar navigation, content area, and optional preview panel
+ * Auto-saves changes - no manual save button needed!
  */
 
-import { ReactNode, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ReactNode, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User,
   FileText,
@@ -17,8 +18,9 @@ import {
   X,
   Eye,
   EyeOff,
-  Save,
   Download,
+  Check,
+  Loader2,
 } from 'lucide-react';
 
 interface ResumeEditorLayoutProps {
@@ -28,9 +30,12 @@ interface ResumeEditorLayoutProps {
   showPreview?: boolean;
   onTogglePreview?: () => void;
   previewPanel?: ReactNode;
-  isDirty?: boolean;
   isSaving?: boolean;
-  onSave?: () => void;
+  lastSaved?: Date | null;
+  isCreateEnabled?: boolean;
+  onCreate?: () => void;
+  isNewResume?: boolean;
+  resumeId?: string | null;
   onDownloadPDF?: () => void;
 }
 
@@ -56,16 +61,43 @@ export default function ResumeEditorLayout({
   showPreview = false,
   onTogglePreview,
   previewPanel,
-  isDirty = false,
   isSaving = false,
-  onSave,
+  lastSaved,
+  isCreateEnabled = false,
+  onCreate,
+  isNewResume = false,
+  resumeId,
   onDownloadPDF,
 }: ResumeEditorLayoutProps) {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [timeAgo, setTimeAgo] = useState<string>('');
 
-  const isNewResume = id === 'new';
+  // Update time ago for last saved
+  useEffect(() => {
+    if (!lastSaved) {
+      setTimeAgo('');
+      return;
+    }
+
+    const updateTimeAgo = () => {
+      const seconds = Math.floor((Date.now() - lastSaved.getTime()) / 1000);
+      if (seconds < 60) {
+        setTimeAgo('just now');
+      } else if (seconds < 3600) {
+        const minutes = Math.floor(seconds / 60);
+        setTimeAgo(`${minutes}m ago`);
+      } else {
+        const hours = Math.floor(seconds / 3600);
+        setTimeAgo(`${hours}h ago`);
+      }
+    };
+
+    updateTimeAgo();
+    const interval = setInterval(updateTimeAgo, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [lastSaved]);
 
   const handleNavClick = (sectionId: string) => {
     onSectionChange(sectionId);
@@ -98,14 +130,62 @@ export default function ResumeEditorLayout({
 
             {/* Resume Status */}
             <div className="hidden md:flex items-center gap-2 text-sm">
-              <span className="text-gray-500">{isNewResume ? 'New Resume' : `Resume #${id}`}</span>
-              {isDirty && <span className="text-orange-600 font-medium">• Unsaved changes</span>}
-              {isSaving && <span className="text-blue-600 font-medium">• Saving...</span>}
+              <span className="text-gray-500">
+                {isNewResume ? 'New Resume' : `Resume #${resumeId}`}
+              </span>
+              {isNewResume ? (
+                <span className="text-gray-400 font-medium">• Fill required fields to create</span>
+              ) : (
+                <>
+                  {isSaving && (
+                    <span className="text-blue-600 font-medium flex items-center gap-1">
+                      <Loader2 size={14} className="animate-spin" />
+                      Saving...
+                    </span>
+                  )}
+                  {!isSaving && lastSaved && (
+                    <span className="text-green-600 font-medium flex items-center gap-1">
+                      <Check size={14} />
+                      Saved {timeAgo}
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Download PDF Button */}
+            {/* Create Button (only for new resumes) */}
+            {isNewResume && onCreate && (
+              <button
+                onClick={onCreate}
+                disabled={!isCreateEnabled || isSaving}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isCreateEnabled && !isSaving
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+                title={
+                  !isCreateEnabled
+                    ? 'Please fill Name, Role, and Email to create resume'
+                    : 'Create resume in database'
+                }
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={20} />
+                    <span>Create</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Download PDF Button (only for existing resumes) */}
             {onDownloadPDF && !isNewResume && (
               <button
                 onClick={onDownloadPDF}
@@ -129,29 +209,29 @@ export default function ResumeEditorLayout({
                 </span>
               </button>
             )}
-
-            {/* Save Button */}
-            {onSave && (
-              <button
-                onClick={onSave}
-                disabled={!isDirty || isSaving}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isDirty && !isSaving
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <Save size={20} />
-                <span>{isSaving ? 'Saving...' : 'Save'}</span>
-              </button>
-            )}
           </div>
         </div>
 
         {/* Mobile Status Bar */}
         <div className="md:hidden px-4 pb-3 flex items-center gap-2 text-sm text-gray-600">
-          {isDirty && <span className="text-orange-600">• Unsaved</span>}
-          {isSaving && <span className="text-blue-600">• Saving...</span>}
+          {isNewResume ? (
+            <span className="text-gray-400">Fill required fields to create</span>
+          ) : (
+            <>
+              {isSaving && (
+                <span className="text-blue-600 flex items-center gap-1">
+                  <Loader2 size={14} className="animate-spin" />
+                  Saving...
+                </span>
+              )}
+              {!isSaving && lastSaved && (
+                <span className="text-green-600 flex items-center gap-1">
+                  <Check size={14} />
+                  Saved {timeAgo}
+                </span>
+              )}
+            </>
+          )}
         </div>
       </header>
 
