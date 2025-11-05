@@ -180,6 +180,17 @@ class ResumeService {
       throw new NotFoundError('Personal Info');
     }
 
+    // Also update resume title when name changes (to keep dashboard in sync)
+    if (data.name) {
+      await pool.query(
+        `UPDATE resumes 
+         SET title = $1 || '''s Resume',
+             updated_at = NOW()
+         WHERE id = $2`,
+        [data.name, resumeId]
+      );
+    }
+
     return result.rows[0];
   }
 
