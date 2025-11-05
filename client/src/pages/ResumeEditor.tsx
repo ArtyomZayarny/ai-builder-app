@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
 import ResumeEditorLayout from '../components/ResumeEditorLayout';
 import PersonalInfoSection from '../components/sections/PersonalInfoSection';
@@ -45,9 +46,9 @@ function ResumeEditorContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading resume data...</p>
+        <div className="text-center animate-fade-in">
+          <Loader2 size={48} className="text-primary-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg font-medium">Loading resume data...</p>
         </div>
       </div>
     );
@@ -57,16 +58,13 @@ function ResumeEditorContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg border border-red-200 p-6 text-center">
+        <div className="card max-w-md w-full p-8 text-center animate-slide-up">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-600 text-2xl">⚠️</span>
+            <AlertCircle size={32} className="text-red-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Resume</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Resume</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={() => navigate('/')} className="btn-primary w-full">
             Back to Dashboard
           </button>
         </div>
