@@ -113,3 +113,81 @@ export const duplicateResume = async (id: number | string): Promise<Resume> => {
 
   return newResume;
 };
+
+/**
+ * Save Personal Info
+ */
+export const savePersonalInfo = async (
+  resumeId: number | string,
+  data: {
+    name: string;
+    role: string;
+    email: string;
+    phone?: string;
+    location?: string;
+    linkedinUrl?: string;
+    portfolioUrl?: string;
+  }
+): Promise<void> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/personal-info`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to save personal info');
+  }
+};
+
+/**
+ * Save Summary
+ */
+export const saveSummary = async (
+  resumeId: number | string,
+  data: { content: string }
+): Promise<void> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/summary`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to save summary');
+  }
+};
+
+/**
+ * Get Personal Info
+ */
+export const getPersonalInfo = async (resumeId: number | string): Promise<any> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/personal-info`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch personal info');
+  }
+
+  const data: ApiResponse<any> = await response.json();
+  return data.data;
+};
+
+/**
+ * Get Summary
+ */
+export const getSummary = async (resumeId: number | string): Promise<any> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/summary`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch summary');
+  }
+
+  const data: ApiResponse<any> = await response.json();
+  return data.data;
+};

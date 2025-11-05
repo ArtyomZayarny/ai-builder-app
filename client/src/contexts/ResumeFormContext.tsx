@@ -13,6 +13,7 @@ import {
   useEffect,
 } from 'react';
 import { useParams } from 'react-router-dom';
+import { getPersonalInfo, getSummary } from '../services/resumeApi';
 
 interface ResumeFormData {
   // Personal Info
@@ -42,6 +43,7 @@ interface ResumeFormContextValue {
   isLoading: boolean;
   error: string | null;
   resumeId: string | null;
+  setResumeId: (id: string) => void;
   isNewResume: boolean;
 }
 
@@ -50,8 +52,8 @@ const ResumeFormContext = createContext<ResumeFormContextValue | undefined>(unde
 export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const isNewResume = id === 'new';
-  const resumeId = isNewResume ? null : id || null;
 
+  const [resumeId, setResumeId] = useState<string | null>(isNewResume ? null : id || null);
   const [formData, setFormData] = useState<ResumeFormData>({});
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -69,13 +71,48 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Implement API call to load resume data
       console.log('Loading resume data for ID:', id);
-      // const response = await fetch(`/api/resumes/${id}`);
-      // const data = await response.json();
-      // setFormData(data);
+
+      // Load Personal Info
+      try {
+        const personalInfo = await getPersonalInfo(id);
+        if (personalInfo) {
+          setFormData(prev => ({
+            ...prev,
+            personalInfo: {
+              name: personalInfo.name || '',
+              role: personalInfo.role || '',
+              email: personalInfo.email || '',
+              phone: personalInfo.phone || '',
+              location: personalInfo.location || '',
+              linkedinUrl: personalInfo.linkedin_url || '',
+              portfolioUrl: personalInfo.portfolio_url || '',
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn('No personal info found:', err);
+      }
+
+      // Load Summary
+      try {
+        const summary = await getSummary(id);
+        if (summary) {
+          setFormData(prev => ({
+            ...prev,
+            summary: {
+              content: summary.content || '',
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn('No summary found:', err);
+      }
+
+      console.log('✅ Resume data loaded successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load resume data');
+      console.error('❌ Failed to load resume data:', err);
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +141,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       isLoading,
       error,
       resumeId,
+      setResumeId,
       isNewResume,
     }),
     [formData, updateFormData, isDirty, isSaving, isLoading, error, resumeId, isNewResume]
