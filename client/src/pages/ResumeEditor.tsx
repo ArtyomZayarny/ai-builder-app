@@ -124,7 +124,7 @@ function ResumeEditorContent() {
     if (isDirty && !isNewResume && resumeId) {
       autoSave();
     }
-  }, [currentSection, isDirty, isNewResume, resumeId, autoSave]);
+  }, [currentSection, isDirty, isNewResume, resumeId]); // autoSave captures latest formData via closure
 
   // Auto-save with debounce (2 seconds after last change, for existing resumes only)
   useEffect(() => {
@@ -146,7 +146,7 @@ function ResumeEditorContent() {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [isDirty, formData, isNewResume, resumeId, autoSave]);
+  }, [isDirty, isNewResume, resumeId]); // ✅ Removed formData AND autoSave - only isDirty should trigger auto-save!
 
   // Show loading state - AFTER all hooks!
   if (isLoading) {
