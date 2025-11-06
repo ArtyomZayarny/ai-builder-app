@@ -233,6 +233,30 @@ class ResumeController {
     await resumeService.deleteExperience(req.params.id, req.params.expId);
     res.status(204).send();
   });
+
+  /**
+   * Toggle resume visibility (public/private)
+   * PATCH /api/resumes/:id/visibility
+   */
+  toggleVisibility = asyncHandler(async (req: Request, res: Response) => {
+    const { is_public } = req.body;
+    const resume = await resumeService.toggleVisibility(req.params.id, is_public);
+    res.json(
+      successResponse(
+        resume,
+        is_public ? 'Resume is now public' : 'Resume is now private',
+      ),
+    );
+  });
+
+  /**
+   * Get public resume by public_id
+   * GET /api/public/:publicId
+   */
+  getPublicResume = asyncHandler(async (req: Request, res: Response) => {
+    const resume = await resumeService.getPublicResume(req.params.publicId);
+    res.json(successResponse(resume, 'Public resume retrieved successfully'));
+  });
 }
 
 export default new ResumeController();

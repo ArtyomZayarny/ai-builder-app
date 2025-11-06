@@ -12,6 +12,8 @@ interface ResumeRow {
   title: string;
   template: string;
   accent_color: string;
+  is_public: boolean;
+  public_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,7 +24,7 @@ class ResumeService {
    */
   async getAllResumes(): Promise<ResumeRow[]> {
     const result = await pool.query<ResumeRow>(
-      `SELECT id, title, template, accent_color, created_at, updated_at 
+      `SELECT id, title, template, accent_color, is_public, public_id, created_at, updated_at 
        FROM resumes 
        ORDER BY updated_at DESC`
     );
@@ -34,7 +36,7 @@ class ResumeService {
    */
   async getResumeById(id: number | string): Promise<ResumeRow> {
     const result = await pool.query<ResumeRow>(
-      `SELECT id, title, template, accent_color, created_at, updated_at 
+      `SELECT id, title, template, accent_color, is_public, public_id, created_at, updated_at 
        FROM resumes 
        WHERE id = $1`,
       [id]
@@ -622,6 +624,77 @@ class ResumeService {
     }
 
     return result.rows[0];
+  }
+
+  /**
+   * Toggle resume visibility (public/private)
+   */
+  async toggleVisibility(
+    id: number | string,
+    isPublic: boolean,
+  ): Promise<{ is_public: boolean; public_id: string }> {
+    const result = await pool.query<{ is_public: boolean; public_id: string }>(
+      `UPDATE resumes 
+       SET is_public = $1, updated_at = NOW() 
+       WHERE id = $2 
+       RETURNING is_public, public_id`,
+      [isPublic, id],
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Resume');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Get public resume by public_id (with all sections)
+   */
+  async getPublicResume(publicId: string): Promise<any> {
+    // First, get the resume and check if it's public
+    const resumeResult = await pool.query(
+      `SELECT id, title, template, accent_color, is_public, created_at, updated_at 
+       FROM resumes 
+       WHERE public_id = $1 AND is_public = true`,
+      [publicId],
+    );
+
+    if (resumeResult.rows.length === 0) {
+      throw new NotFoundError('Public resume');
+    }
+
+    const resume = resumeResult.rows[0];
+
+    // Get all sections for this resume
+    const [personalInfo, summary, experiences, education, projects, skills] = await Promise.all([
+      pool.query(`SELECT * FROM personal_info WHERE resume_id = $1`, [resume.id]),
+      pool.query(`SELECT content FROM summaries WHERE resume_id = $1`, [resume.id]),
+      pool.query(
+        `SELECT * FROM experiences WHERE resume_id = $1 ORDER BY order_index, start_date DESC`,
+        [resume.id],
+      ),
+      pool.query(
+        `SELECT * FROM education WHERE resume_id = $1 ORDER BY order_index, graduation_date DESC`,
+        [resume.id],
+      ),
+      pool.query(`SELECT * FROM projects WHERE resume_id = $1 ORDER BY order_index, date DESC`, [
+        resume.id,
+      ]),
+      pool.query(`SELECT * FROM skills WHERE resume_id = $1 ORDER BY order_index, category`, [
+        resume.id,
+      ]),
+    ]);
+
+    return {
+      ...resume,
+      personalInfo: personalInfo.rows[0] || null,
+      summary: summary.rows[0] || null,
+      experiences: experiences.rows,
+      education: education.rows,
+      projects: projects.rows,
+      skills: skills.rows,
+    };
   }
 }
 

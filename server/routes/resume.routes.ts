@@ -61,5 +61,8 @@ router.post('/:id/experiences', validate(ExperienceCreateSchema), resumeControll
 router.put('/:id/experiences/:expId', validate(ExperienceUpdateSchema), resumeController.updateExperience);
 router.delete('/:id/experiences/:expId', resumeController.deleteExperience);
 
+// Public/Private Visibility
+router.patch('/:id/visibility', resumeController.toggleVisibility);
+
 export default router;
 

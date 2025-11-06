@@ -12,7 +12,8 @@ export interface Resume {
   accent_color: string;
   created_at: string;
   updated_at: string;
-  is_public?: boolean;
+  is_public: boolean;
+  public_id: string;
 }
 
 // ResumeData type for templates (matches formData structure)

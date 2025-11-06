@@ -94,6 +94,10 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ai', aiRoutes);
 
+// Public resume route (no auth required)
+import resumeController from './controllers/resume.controller.js';
+app.get('/api/public/:publicId', resumeController.getPublicResume);
+
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
 

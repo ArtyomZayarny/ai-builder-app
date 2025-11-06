@@ -17,14 +17,28 @@ async function runMigrations() {
   try {
     console.log('🔄 Running database migrations...\n');
 
-    // Read migration file
-    const migrationPath = path.join(__dirname, '001_initial_schema.sql');
-    const sql = fs.readFileSync(migrationPath, 'utf-8');
+    // Get all migration files sorted by name
+    const migrationFiles = fs
+      .readdirSync(__dirname)
+      .filter(file => file.endsWith('.sql'))
+      .sort();
 
-    // Execute migration
-    await client.query(sql);
+    if (migrationFiles.length === 0) {
+      console.log('⚠️  No migration files found');
+      return;
+    }
 
-    console.log('✅ Migrations completed successfully!\n');
+    // Execute each migration
+    for (const file of migrationFiles) {
+      console.log(`📄 Running migration: ${file}`);
+      const migrationPath = path.join(__dirname, file);
+      const sql = fs.readFileSync(migrationPath, 'utf-8');
+
+      await client.query(sql);
+      console.log(`✅ ${file} completed\n`);
+    }
+
+    console.log('✅ All migrations completed successfully!\n');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     throw error;

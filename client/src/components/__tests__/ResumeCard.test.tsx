@@ -9,6 +9,8 @@ describe('ResumeCard', () => {
     title: 'Software Engineer Resume',
     template: 'classic' as const,
     accent_color: '#3B82F6',
+    is_public: false,
+    public_id: 'test-public-id-123',
     created_at: '2024-01-01T00:00:00.000Z',
     updated_at: '2024-01-02T00:00:00.000Z',
   };

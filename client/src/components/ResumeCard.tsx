@@ -8,14 +8,21 @@ import { useNavigate } from 'react-router-dom';
 import { useState, type MouseEvent } from 'react';
 import type { Resume } from '../types/resume';
 import ConfirmDialog from './ConfirmDialog';
+import PublicToggle from './PublicToggle';
 
 interface ResumeCardProps {
   resume: Resume;
   onDelete: (id: number) => Promise<void>;
   onDuplicate: (id: number) => Promise<void>;
+  onVisibilityChange?: (id: number, isPublic: boolean, publicId: string) => void;
 }
 
-export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCardProps) {
+export default function ResumeCard({
+  resume,
+  onDelete,
+  onDuplicate,
+  onVisibilityChange,
+}: ResumeCardProps) {
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -117,6 +124,18 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
                 Public
               </span>
             )}
+          </div>
+
+          {/* Public/Private Toggle */}
+          <div onClick={e => e.stopPropagation()}>
+            <PublicToggle
+              resumeId={resume.id}
+              isPublic={resume.is_public}
+              publicId={resume.public_id}
+              onToggleSuccess={(isPublic, publicId) => {
+                onVisibilityChange?.(resume.id, isPublic, publicId);
+              }}
+            />
           </div>
 
           {/* Actions */}

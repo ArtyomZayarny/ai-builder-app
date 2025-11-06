@@ -65,6 +65,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleVisibilityChange = (id: number, isPublic: boolean, publicId: string) => {
+    // Update local state
+    setResumes(
+      resumes.map(resume =>
+        resume.id === id ? { ...resume, is_public: isPublic, public_id: publicId } : resume
+      )
+    );
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -156,6 +165,7 @@ export default function Dashboard() {
                 resume={resume}
                 onDelete={handleDeleteResume}
                 onDuplicate={handleDuplicateResume}
+                onVisibilityChange={handleVisibilityChange}
               />
             </div>
           ))}
