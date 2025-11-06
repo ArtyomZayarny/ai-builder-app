@@ -34,3 +34,7 @@ dist/
 docs/
 scripts/
 .env.example
+
+# Task files
+# tasks.json
+# tasks/ 

@@ -23,6 +23,93 @@
   p {
     @apply m-0;
   }
+
+  /* ===================================
+   * Resume Template CSS Variables
+   * For theming and customization
+   * =================================== */
+  :root {
+    /* Colors - Primary */
+    --resume-primary-color: 17 24 39; /* gray-900 */
+    --resume-accent-color: 59 130 246; /* blue-600 - default accent */
+    --resume-accent-light: 96 165 250; /* blue-400 */
+    --resume-accent-dark: 29 78 216; /* blue-700 */
+
+    /* Colors - Text */
+    --resume-text-primary: 17 24 39; /* gray-900 */
+    --resume-text-secondary: 55 65 81; /* gray-700 */
+    --resume-text-tertiary: 107 114 128; /* gray-600 */
+    --resume-text-muted: 156 163 175; /* gray-400 */
+
+    /* Colors - Borders */
+    --resume-border-primary: 17 24 39; /* gray-900 */
+    --resume-border-secondary: 209 213 219; /* gray-300 */
+    --resume-border-light: 229 231 235; /* gray-200 */
+
+    /* Colors - Background */
+    --resume-bg-primary: 255 255 255; /* white */
+    --resume-bg-secondary: 249 250 251; /* gray-50 */
+
+    /* Typography - Font Families */
+    --resume-font-primary:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --resume-font-headings: var(--resume-font-primary);
+
+    /* Typography - Font Sizes */
+    --resume-text-xs: 0.75rem; /* 12px */
+    --resume-text-sm: 0.875rem; /* 14px */
+    --resume-text-base: 1rem; /* 16px */
+    --resume-text-lg: 1.125rem; /* 18px */
+    --resume-text-xl: 1.25rem; /* 20px */
+    --resume-text-2xl: 1.5rem; /* 24px */
+    --resume-text-3xl: 1.875rem; /* 30px */
+    --resume-text-4xl: 2.25rem; /* 36px */
+    --resume-text-5xl: 3rem; /* 48px */
+
+    /* Typography - Font Weights */
+    --resume-font-normal: 400;
+    --resume-font-medium: 500;
+    --resume-font-semibold: 600;
+    --resume-font-bold: 700;
+
+    /* Typography - Line Heights */
+    --resume-leading-tight: 1.25;
+    --resume-leading-snug: 1.375;
+    --resume-leading-normal: 1.5;
+    --resume-leading-relaxed: 1.625;
+    --resume-leading-loose: 2;
+
+    /* Spacing - Layout */
+    --resume-spacing-xs: 0.25rem; /* 4px */
+    --resume-spacing-sm: 0.5rem; /* 8px */
+    --resume-spacing-md: 0.75rem; /* 12px */
+    --resume-spacing-lg: 1rem; /* 16px */
+    --resume-spacing-xl: 1.5rem; /* 24px */
+    --resume-spacing-2xl: 2rem; /* 32px */
+    --resume-spacing-3xl: 2.5rem; /* 40px */
+    --resume-spacing-4xl: 3rem; /* 48px */
+
+    /* Spacing - Section Gaps */
+    --resume-section-gap: 2rem; /* 32px */
+    --resume-item-gap: 1.25rem; /* 20px */
+
+    /* Borders */
+    --resume-border-width-thin: 1px;
+    --resume-border-width-medium: 2px;
+    --resume-border-width-thick: 3px;
+
+    /* Page Layout */
+    --resume-page-max-width: 21cm; /* A4 width */
+    --resume-page-padding: 2rem; /* 32px */
+    --resume-page-padding-md: 3rem; /* 48px */
+  }
+
+  /* Resume-specific classes using CSS variables */
+  #resume-preview {
+    font-family: var(--resume-font-primary);
+    color: rgb(var(--resume-text-primary));
+    background-color: rgb(var(--resume-bg-primary));
+  }
 }
 
 @layer components {
@@ -74,4 +161,137 @@
   .animate-delay-300 {
     animation-delay: 300ms;
   }
+}
+
+/* ===================================
+ * Print & PDF Optimization Styles
+ * =================================== */
+@media print {
+  /* Page Setup */
+  @page {
+    size: A4; /* Can be changed to Letter if needed */
+    margin: 0.5in; /* Standard margins for resume */
+  }
+
+  /* Hide UI elements */
+  body {
+    background: white !important;
+  }
+
+  /* Resume Preview Optimization */
+  #resume-preview {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: auto;
+  }
+
+  /* Prevent breaking inside elements */
+  #resume-preview header,
+  #resume-preview section,
+  #resume-preview article {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Control section breaks */
+  #resume-preview section {
+    page-break-after: auto;
+  }
+
+  /* Force break before if necessary (can be added via classes) */
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  /* Avoid breaks */
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Links - show URL in print */
+  #resume-preview a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: rgb(var(--resume-text-tertiary));
+  }
+
+  /* Optimize typography for print */
+  #resume-preview {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
+  /* Remove shadows and transitions */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Ensure proper contrast */
+  #resume-preview a {
+    color: rgb(var(--resume-accent-dark)) !important;
+    text-decoration: underline;
+  }
+
+  /* Hide screen-only elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Screen-only styles */
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+/* PDF Export Specific Optimizations */
+#resume-preview {
+  /* Ensure crisp text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  /* Optimize for PDF generation libraries */
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+}
+
+/* Prevent orphans and widows */
+#resume-preview p,
+#resume-preview li {
+  orphans: 3;
+  widows: 3;
+}
+
+/* Ensure headings stay with content */
+#resume-preview h1,
+#resume-preview h2,
+#resume-preview h3,
+#resume-preview h4,
+#resume-preview h5,
+#resume-preview h6 {
+  page-break-after: avoid;
+  break-after: avoid;
+  orphans: 3;
+  widows: 3;
 }
