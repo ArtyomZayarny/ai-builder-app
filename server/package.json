@@ -25,6 +25,7 @@
   "description": "",
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.1.0",
+    "@google/generative-ai": "^0.24.1",
     "@resume-builder/shared": "*",
     "@scalar/express-api-reference": "^0.8.23",
     "body-parser": "^2.2.0",

@@ -6,6 +6,7 @@ import pool, { closePool } from './db/connection.js';
 // import authRoutes from './routes/auth.js'; // TODO: Migrate to TypeScript
 // import userRoutes from './routes/users.js'; // TODO: Migrate to TypeScript
 import resumeRoutes from './routes/resume.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -91,6 +92,7 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use('/api/auth', authRoutes); // TODO: Migrate to TypeScript
 // app.use('/api/users', userRoutes); // TODO: Migrate to TypeScript
 app.use('/api/resumes', resumeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
