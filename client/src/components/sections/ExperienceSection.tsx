@@ -7,8 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Experience } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
-import { useEffect } from 'react';
-import { Plus, Trash2, Briefcase } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Trash2, Briefcase, Sparkles } from 'lucide-react';
+import { enhanceExperience } from '../../services/aiApi';
+import { toast } from 'sonner';
 
 // Array schema for form
 const FormSchema = z.object({
@@ -31,6 +33,7 @@ type FormData = z.infer<typeof FormSchema>;
 
 export default function ExperienceSection() {
   const { formData, updateFormData } = useResumeForm();
+  const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null);
 
   const {
     register,
@@ -76,6 +79,64 @@ export default function ExperienceSection() {
       description: '',
       order: fields.length,
     });
+  };
+
+  // Handle AI Enhancement for specific experience
+  const handleAIEnhance = async (index: number) => {
+    const experience = watchedExperiences?.[index];
+
+    if (!experience) return;
+
+    if (!experience.description || experience.description.trim().length === 0) {
+      toast.error('Please write something first', {
+        description: 'Add a description to enhance it with AI',
+      });
+      return;
+    }
+
+    if (experience.description.trim().length < 20) {
+      toast.error('Description too short', {
+        description: 'Please write at least 20 characters for AI to enhance',
+      });
+      return;
+    }
+
+    if (!experience.role || !experience.company) {
+      toast.error('Missing information', {
+        description: 'Please fill in role and company first',
+      });
+      return;
+    }
+
+    setEnhancingIndex(index);
+    const enhanceToast = toast.loading('AI is enhancing your experience...', {
+      description: 'This may take a few seconds',
+    });
+
+    try {
+      const enhanced = await enhanceExperience(
+        experience.role,
+        experience.company,
+        experience.description
+      );
+
+      // Show success toast
+      toast.success('Experience enhanced! ✨', {
+        id: enhanceToast,
+        description: 'Review the AI-enhanced version',
+      });
+
+      // Update the form with enhanced content
+      setValue(`experiences.${index}.description`, enhanced);
+    } catch (error) {
+      console.error('AI Enhancement error:', error);
+      toast.error('Enhancement failed', {
+        id: enhanceToast,
+        description: error instanceof Error ? error.message : 'Failed to enhance experience',
+      });
+    } finally {
+      setEnhancingIndex(null);
+    }
   };
 
   return (
@@ -188,8 +249,27 @@ export default function ExperienceSection() {
                   {...register(`experiences.${index}.description`)}
                   rows={4}
                   className="w-full px-3 py-2 border rounded-lg resize-none"
-                  placeholder="Describe your role..."
+                  placeholder="Describe your role, responsibilities, and achievements..."
                 />
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance(index)}
+                    disabled={
+                      enhancingIndex === index ||
+                      !watchedExperiences?.[index]?.description ||
+                      (watchedExperiences?.[index]?.description?.trim().length || 0) < 20
+                    }
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Enhance with AI"
+                  >
+                    <Sparkles
+                      size={16}
+                      className={enhancingIndex === index ? 'animate-spin' : ''}
+                    />
+                    {enhancingIndex === index ? 'Enhancing...' : 'AI Enhance'}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

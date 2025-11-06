@@ -30,7 +30,7 @@ export async function enhanceSummary(req: Request, res: Response): Promise<void>
       successResponse({
         original: text,
         enhanced,
-      }),
+      })
     );
   } catch (error) {
     if (error instanceof AppError) {
@@ -72,7 +72,7 @@ export async function enhanceExperience(req: Request, res: Response): Promise<vo
       successResponse({
         original: description,
         enhanced,
-      }),
+      })
     );
   } catch (error) {
     if (error instanceof AppError) {
@@ -110,7 +110,7 @@ export async function enhanceProject(req: Request, res: Response): Promise<void>
       successResponse({
         original: description,
         enhanced,
-      }),
+      })
     );
   } catch (error) {
     if (error instanceof AppError) {
@@ -135,4 +135,3 @@ export async function getHealth(_req: Request, res: Response): Promise<void> {
     res.status(500).json(errorResponse('Failed to check AI service health'));
   }
 }
-

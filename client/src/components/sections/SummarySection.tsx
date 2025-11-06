@@ -8,10 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SummarySchema, type Summary } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useState, useRef } from 'react';
+import { Sparkles } from 'lucide-react';
+import { enhanceSummary } from '../../services/aiApi';
+import { toast } from 'sonner';
 
 export default function SummarySection() {
   const { formData, updateFormData } = useResumeForm();
   const [charCount, setCharCount] = useState(0);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const isInitialLoadRef = useRef(true); // Track if this is initial data load
 
   const {
@@ -56,6 +60,52 @@ export default function SummarySection() {
     updateFormData('summary', currentValues);
   };
 
+  // Handle AI Enhancement
+  const handleAIEnhance = async () => {
+    const currentContent = getValues('content');
+
+    if (!currentContent || currentContent.trim().length === 0) {
+      toast.error('Please write something first', {
+        description: 'Add some content to enhance it with AI',
+      });
+      return;
+    }
+
+    if (currentContent.trim().length < 20) {
+      toast.error('Content too short', {
+        description: 'Please write at least 20 characters for AI to enhance',
+      });
+      return;
+    }
+
+    setIsEnhancing(true);
+    const enhanceToast = toast.loading('AI is enhancing your summary...', {
+      description: 'This may take a few seconds',
+    });
+
+    try {
+      const enhanced = await enhanceSummary(currentContent);
+
+      // Show success toast
+      toast.success('Summary enhanced! ✨', {
+        id: enhanceToast,
+        description: 'Review the AI-enhanced version',
+      });
+
+      // Update the form with enhanced content
+      setValue('content', enhanced);
+      handleFieldChange();
+    } catch (error) {
+      console.error('AI Enhancement error:', error);
+      toast.error('Enhancement failed', {
+        id: enhanceToast,
+        description: error instanceof Error ? error.message : 'Failed to enhance summary',
+      });
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -79,9 +129,21 @@ export default function SummarySection() {
             }`}
           />
 
-          {/* Character Count */}
+          {/* AI Enhance Button & Character Count */}
           <div className="flex justify-between items-center mt-2">
-            {errors.content && <p className="text-sm text-red-600">{errors.content.message}</p>}
+            <div className="flex items-center gap-2">
+              {errors.content && <p className="text-sm text-red-600">{errors.content.message}</p>}
+              <button
+                type="button"
+                onClick={handleAIEnhance}
+                disabled={isEnhancing || !summaryContent || summaryContent.trim().length < 20}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Enhance with AI"
+              >
+                <Sparkles size={16} className={isEnhancing ? 'animate-spin' : ''} />
+                {isEnhancing ? 'Enhancing...' : 'AI Enhance'}
+              </button>
+            </div>
             <div className="ml-auto">
               <span
                 className={`text-sm ${
