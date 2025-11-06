@@ -24,7 +24,10 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
       <div className="p-8 md:p-12">
         {/* Header - Personal Info */}
         {personalInfo && (
-          <header className="mb-8 pb-6 border-b-2 border-gray-900">
+          <header
+            className="mb-8 pb-6 border-b-2"
+            style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+          >
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 tracking-tight">
               {personalInfo.name || 'Your Name'}
             </h1>
@@ -59,7 +62,8 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
                     href={personalInfo.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-700 hover:text-blue-900 underline font-medium"
+                    className="underline font-medium hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     LinkedIn
                   </a>
@@ -69,7 +73,8 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
                     href={personalInfo.portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-700 hover:text-blue-900 underline font-medium"
+                    className="underline font-medium hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     Portfolio
                   </a>
@@ -82,7 +87,13 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
         {/* Professional Summary */}
         {summary?.content && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-3 uppercase tracking-wide border-b-2 border-gray-900 pb-2">
+            <h2
+              className="text-xl font-bold mb-3 uppercase tracking-wide border-b-2 pb-2"
+              style={{
+                color: `rgb(var(--resume-accent-color))`,
+                borderColor: `rgb(var(--resume-accent-color))`,
+              }}
+            >
               Professional Summary
             </h2>
             <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -94,7 +105,13 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
         {/* Work Experience */}
         {experiences && experiences.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b-2 border-gray-900 pb-2">
+            <h2
+              className="text-xl font-bold mb-4 uppercase tracking-wide border-b-2 pb-2"
+              style={{
+                color: `rgb(var(--resume-accent-color))`,
+                borderColor: `rgb(var(--resume-accent-color))`,
+              }}
+            >
               Work Experience
             </h2>
             <div className="space-y-5">
@@ -126,7 +143,13 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
         {/* Education */}
         {education && education.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b-2 border-gray-900 pb-2">
+            <h2
+              className="text-xl font-bold mb-4 uppercase tracking-wide border-b-2 pb-2"
+              style={{
+                color: `rgb(var(--resume-accent-color))`,
+                borderColor: `rgb(var(--resume-accent-color))`,
+              }}
+            >
               Education
             </h2>
             <div className="space-y-4">
@@ -156,7 +179,13 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
         {/* Projects */}
         {projects && projects.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b-2 border-gray-900 pb-2">
+            <h2
+              className="text-xl font-bold mb-4 uppercase tracking-wide border-b-2 pb-2"
+              style={{
+                color: `rgb(var(--resume-accent-color))`,
+                borderColor: `rgb(var(--resume-accent-color))`,
+              }}
+            >
               Projects
             </h2>
             <div className="space-y-4">
@@ -183,7 +212,8 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
                       href={project.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-700 hover:text-blue-900 underline inline-block mb-1.5"
+                      className="text-sm underline inline-block mb-1.5 hover:opacity-80 transition-opacity"
+                      style={{ color: `rgb(var(--resume-accent-color))` }}
                     >
                       {project.url}
                     </a>
@@ -202,7 +232,13 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
         {/* Skills */}
         {skills && skills.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wide border-b-2 border-gray-900 pb-2">
+            <h2
+              className="text-xl font-bold mb-4 uppercase tracking-wide border-b-2 pb-2"
+              style={{
+                color: `rgb(var(--resume-accent-color))`,
+                borderColor: `rgb(var(--resume-accent-color))`,
+              }}
+            >
               Skills
             </h2>
             <div className="space-y-2.5">

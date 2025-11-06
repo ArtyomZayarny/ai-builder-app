@@ -17,6 +17,7 @@ import EducationSection from '../components/sections/EducationSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import SkillsSection from '../components/sections/SkillsSection';
 import TemplateSelector from '../components/TemplateSelector';
+import ColorThemePicker from '../components/ColorThemePicker';
 import ResumePreview from '../components/ResumePreview';
 import {
   createResume,
@@ -295,7 +296,14 @@ function ResumeEditorContent() {
       case 'skills':
         return <SkillsSection />;
       case 'template':
-        return <TemplateSelector />;
+        return (
+          <div className="space-y-8">
+            <TemplateSelector />
+            <div className="border-t border-gray-200 pt-8">
+              <ColorThemePicker />
+            </div>
+          </div>
+        );
       default:
         return <PersonalInfoSection />;
     }

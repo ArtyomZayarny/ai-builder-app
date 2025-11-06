@@ -114,6 +114,8 @@ interface ResumeFormContextValue {
   isNewResume: boolean;
   selectedTemplate: ResumeTemplate;
   setSelectedTemplate: (template: ResumeTemplate) => void;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
 }
 
 const ResumeFormContext = createContext<ResumeFormContextValue | undefined>(undefined);
@@ -141,6 +143,22 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
     (template: ResumeTemplate) => {
       setSelectedTemplateState(template);
       localStorage.setItem(`resume-template-${resumeId || 'new'}`, template);
+      setIsDirty(true);
+    },
+    [resumeId]
+  );
+
+  // Accent color state (persisted in localStorage)
+  const [accentColor, setAccentColorState] = useState<string>(() => {
+    const saved = localStorage.getItem(`resume-accent-${resumeId || 'new'}`);
+    return saved || '#3B82F6'; // Default blue
+  });
+
+  // Persist accent color selection
+  const setAccentColor = useCallback(
+    (color: string) => {
+      setAccentColorState(color);
+      localStorage.setItem(`resume-accent-${resumeId || 'new'}`, color);
       setIsDirty(true);
     },
     [resumeId]
@@ -204,6 +222,8 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       isNewResume,
       selectedTemplate,
       setSelectedTemplate,
+      accentColor,
+      setAccentColor,
     }),
     [
       formData,
@@ -216,6 +236,8 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       isNewResume,
       selectedTemplate,
       setSelectedTemplate,
+      accentColor,
+      setAccentColor,
     ]
   );
 
