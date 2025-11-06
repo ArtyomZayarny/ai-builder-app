@@ -70,6 +70,9 @@ async function fetchResumeData(id: string) {
   };
 }
 
+// Template types
+export type ResumeTemplate = 'classic' | 'modern' | 'creative' | 'technical';
+
 interface ResumeFormData {
   // Personal Info
   personalInfo?: {
@@ -93,6 +96,8 @@ interface ResumeFormData {
   projects?: Project[];
   // Skills
   skills?: Skill[];
+  // Template Selection
+  selectedTemplate?: ResumeTemplate;
 }
 
 interface ResumeFormContextValue {
@@ -107,6 +112,8 @@ interface ResumeFormContextValue {
   resumeId: string | null;
   setResumeId: (id: string) => void;
   isNewResume: boolean;
+  selectedTemplate: ResumeTemplate;
+  setSelectedTemplate: (template: ResumeTemplate) => void;
 }
 
 const ResumeFormContext = createContext<ResumeFormContextValue | undefined>(undefined);
@@ -122,6 +129,22 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null); // Track which resume is currently loading
+
+  // Template selection state (persisted in localStorage)
+  const [selectedTemplate, setSelectedTemplateState] = useState<ResumeTemplate>(() => {
+    const saved = localStorage.getItem(`resume-template-${resumeId || 'new'}`);
+    return (saved as ResumeTemplate) || 'classic';
+  });
+
+  // Persist template selection
+  const setSelectedTemplate = useCallback(
+    (template: ResumeTemplate) => {
+      setSelectedTemplateState(template);
+      localStorage.setItem(`resume-template-${resumeId || 'new'}`, template);
+      setIsDirty(true);
+    },
+    [resumeId]
+  );
 
   // ✅ Load resume data on mount if editing existing resume
   // Function outside component = stable, no need for useCallback or deps array gymnastics
@@ -179,8 +202,21 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       resumeId,
       setResumeId,
       isNewResume,
+      selectedTemplate,
+      setSelectedTemplate,
     }),
-    [formData, updateFormData, isDirty, isSaving, isLoading, error, resumeId, isNewResume]
+    [
+      formData,
+      updateFormData,
+      isDirty,
+      isSaving,
+      isLoading,
+      error,
+      resumeId,
+      isNewResume,
+      selectedTemplate,
+      setSelectedTemplate,
+    ]
   );
 
   return <ResumeFormContext.Provider value={value}>{children}</ResumeFormContext.Provider>;

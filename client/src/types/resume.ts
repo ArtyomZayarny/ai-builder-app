@@ -3,6 +3,8 @@
  * TypeScript interfaces for resume data
  */
 
+import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
+
 export interface Resume {
   id: number;
   title: string;
@@ -11,6 +13,26 @@ export interface Resume {
   created_at: string;
   updated_at: string;
   is_public?: boolean;
+}
+
+// ResumeData type for templates (matches formData structure)
+export interface ResumeData {
+  personalInfo?: {
+    name?: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedinUrl?: string;
+    portfolioUrl?: string;
+  };
+  summary?: {
+    content?: string;
+  };
+  experiences?: Experience[];
+  education?: Education[];
+  projects?: Project[];
+  skills?: Skill[];
 }
 
 export interface ResumeCreateInput {

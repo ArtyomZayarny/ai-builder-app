@@ -19,6 +19,7 @@ import {
   EyeOff,
   Download,
   Check,
+  Palette,
 } from 'lucide-react';
 
 interface ResumeEditorLayoutProps {
@@ -49,6 +50,7 @@ const navigationItems: NavItem[] = [
   { id: 'education', label: 'Education', icon: GraduationCap },
   { id: 'projects', label: 'Projects', icon: FolderGit2 },
   { id: 'skills', label: 'Skills', icon: Wrench },
+  { id: 'template', label: 'Template', icon: Palette },
 ];
 
 export default function ResumeEditorLayout({

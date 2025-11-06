@@ -16,6 +16,7 @@ import ExperienceSection from '../components/sections/ExperienceSection';
 import EducationSection from '../components/sections/EducationSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import SkillsSection from '../components/sections/SkillsSection';
+import TemplateSelector from '../components/TemplateSelector';
 import ResumePreview from '../components/ResumePreview';
 import {
   createResume,
@@ -293,6 +294,8 @@ function ResumeEditorContent() {
         return <ProjectsSection />;
       case 'skills':
         return <SkillsSection />;
+      case 'template':
+        return <TemplateSelector />;
       default:
         return <PersonalInfoSection />;
     }
