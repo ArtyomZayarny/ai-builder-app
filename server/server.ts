@@ -9,6 +9,7 @@ import resumeRoutes from './routes/resume.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import imagekitRoutes from './routes/imagekit.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { securityHeaders } from './middleware/securityHeaders.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,10 +29,11 @@ const corsOptions = {
 };
 
 // Middleware
+app.use(securityHeaders); // Security headers (must be before other middleware)
 app.use(cors(corsOptions));
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10mb' })); // Limit request body size
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {

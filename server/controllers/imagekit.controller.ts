@@ -8,6 +8,7 @@ import multer from 'multer';
 import { uploadImage } from '../services/imagekit.service.js';
 import { successResponse } from '../utils/response.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { validateFileUpload } from '../middleware/fileUploadValidation.js';
 
 // Configure multer for memory storage
 const upload = multer({
@@ -31,6 +32,7 @@ const upload = multer({
  */
 export const uploadProfilePhoto = [
   upload.single('photo'),
+  validateFileUpload,
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     if (!req.file) {
       res.status(400).json({
