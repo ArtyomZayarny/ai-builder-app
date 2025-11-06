@@ -4,17 +4,28 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, FileText, AlertCircle, Loader2, LogIn, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
 import { getAllResumes, deleteResume, duplicateResume } from '../services/resumeApi';
+import { useAuth } from '../contexts/AuthContext';
 import type { Resume } from '../types/resume';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   // Fetch resumes on mount
   useEffect(() => {
@@ -140,6 +151,33 @@ export default function Dashboard() {
               <p className="text-gray-600 mt-2 text-lg">
                 Manage and edit your professional resumes
               </p>
+            </div>
+
+            {/* Auth Section */}
+            <div className="flex items-center gap-4">
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <User size={16} />
+                    <span className="hidden sm:inline">{user.email}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <LogOut size={16} />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                >
+                  <LogIn size={16} />
+                  <span>Login</span>
+                </button>
+              )}
             </div>
             <button
               onClick={handleCreateResume}

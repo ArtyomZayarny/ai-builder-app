@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import pool, { closePool } from './db/connection.js';
-// import authRoutes from './routes/auth.js'; // TODO: Migrate to TypeScript
-// import userRoutes from './routes/users.js'; // TODO: Migrate to TypeScript
+import authRoutes from './routes/auth.routes.js';
 import resumeRoutes from './routes/resume.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import imagekitRoutes from './routes/imagekit.routes.js';
@@ -12,6 +12,9 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Trust proxy for correct IP addresses (important for rate limiting)
+app.set('trust proxy', 1);
 
 // CORS configuration - allow frontend to access API
 const corsOptions = {
@@ -26,6 +29,7 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -90,8 +94,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Routes
-// app.use('/api/auth', authRoutes); // TODO: Migrate to TypeScript
-// app.use('/api/users', userRoutes); // TODO: Migrate to TypeScript
+app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/imagekit', imagekitRoutes);
