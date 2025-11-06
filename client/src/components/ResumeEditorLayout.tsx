@@ -21,6 +21,8 @@ import {
   Check,
   Palette,
 } from 'lucide-react';
+import SaveStatusIndicator from './SaveStatusIndicator';
+import type { SaveStatus } from '../contexts/ResumeFormContext';
 
 interface ResumeEditorLayoutProps {
   children: ReactNode;
@@ -35,6 +37,8 @@ interface ResumeEditorLayoutProps {
   resumeId?: string | null;
   onDownloadPDF?: () => void;
   onDashboardClick?: () => void;
+  saveStatus?: SaveStatus;
+  isDirty?: boolean;
 }
 
 interface NavItem {
@@ -66,6 +70,8 @@ export default function ResumeEditorLayout({
   resumeId,
   onDownloadPDF,
   onDashboardClick,
+  saveStatus = 'idle',
+  isDirty = false,
 }: ResumeEditorLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -108,6 +114,13 @@ export default function ResumeEditorLayout({
               )}
             </div>
           </div>
+
+          {/* Save Status Indicator */}
+          {!isNewResume && (
+            <div className="flex items-center">
+              <SaveStatusIndicator status={saveStatus} isDirty={isDirty} />
+            </div>
+          )}
 
           <div className="flex items-center gap-2">
             {/* Create Button (only for new resumes) */}

@@ -1,6 +1,6 @@
 /**
  * Resume Editor Page
- * Auto-saves on section change and after 2 seconds of inactivity
+ * Auto-saves changes every 30 seconds when form is dirty
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
+import { useAutoSave } from '../hooks/useAutoSave';
 import ResumeEditorLayout from '../components/ResumeEditorLayout';
 import PersonalInfoSection from '../components/sections/PersonalInfoSection';
 import SummarySection from '../components/sections/SummarySection';
@@ -34,8 +35,35 @@ function ResumeEditorContent() {
   const [currentSection, setCurrentSection] = useState('personal-info');
   const [showPreview, setShowPreview] = useState(false);
 
-  const { isDirty, setIsDirty, formData, resumeId, isNewResume, isLoading, error } =
-    useResumeForm();
+  const {
+    isDirty,
+    setIsDirty,
+    formData,
+    resumeId,
+    isNewResume,
+    isLoading,
+    error,
+    setSaveStatus,
+    saveStatus,
+  } = useResumeForm();
+
+  // Auto-save hook
+  const { manualSave } = useAutoSave({
+    resumeId,
+    formData,
+    isDirty,
+    isNewResume,
+    setSaveStatus,
+    setIsDirty,
+    onSaveSuccess: () => {
+      // Silent success - status indicator will show
+    },
+    onSaveError: error => {
+      toast.error('Auto-save failed', {
+        description: error.message || 'Your changes may not be saved. Please try again.',
+      });
+    },
+  });
 
   // Check if all required fields are filled
   const isCreateEnabled = Boolean(
@@ -45,59 +73,11 @@ function ResumeEditorContent() {
   );
 
   // Save all form data to backend (called before PDF download or navigation)
+  // Note: Auto-save handles regular saves, this is for manual saves before critical actions
   const saveAllData = useCallback(async () => {
-    if (!resumeId) return;
-
-    try {
-      // Save Personal Info
-      if (formData.personalInfo) {
-        await savePersonalInfo(resumeId, {
-          name: formData.personalInfo.name || '',
-          role: formData.personalInfo.role || '',
-          email: formData.personalInfo.email || '',
-          phone: formData.personalInfo.phone || '',
-          location: formData.personalInfo.location || '',
-          linkedinUrl: formData.personalInfo.linkedinUrl || '',
-          portfolioUrl: formData.personalInfo.portfolioUrl || '',
-        });
-      }
-
-      // Save Summary (if exists)
-      if (formData.summary?.content?.trim()) {
-        await saveSummary(resumeId, {
-          content: formData.summary.content,
-        });
-      }
-
-      // Save Experiences (if exists)
-      if (formData.experiences && formData.experiences.length > 0) {
-        await saveExperiences(resumeId, formData.experiences);
-      }
-
-      // Save Education (if exists)
-      if (formData.education && formData.education.length > 0) {
-        await saveEducation(resumeId, formData.education);
-      }
-
-      // Save Projects (if exists)
-      if (formData.projects && formData.projects.length > 0) {
-        await saveProjects(resumeId, formData.projects);
-      }
-
-      // Save Skills (if exists)
-      if (formData.skills && formData.skills.length > 0) {
-        await saveSkills(resumeId, formData.skills);
-      }
-
-      setIsDirty(false);
-    } catch (error) {
-      console.error('❌ Save failed:', error);
-      toast.error('Failed to save changes', {
-        description: error instanceof Error ? error.message : 'Changes not saved',
-      });
-      throw error; // Re-throw to handle in calling function
-    }
-  }, [formData, resumeId, setIsDirty]);
+    // Use manual save from auto-save hook
+    await manualSave();
+  }, [manualSave]);
 
   // Warn user before leaving with unsaved changes
   useEffect(() => {
@@ -322,6 +302,8 @@ function ResumeEditorContent() {
       resumeId={resumeId}
       onDownloadPDF={handleDownloadPDF}
       onDashboardClick={handleDashboardClick}
+      saveStatus={saveStatus}
+      isDirty={isDirty}
     >
       {renderSection()}
     </ResumeEditorLayout>

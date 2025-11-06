@@ -100,6 +100,8 @@ interface ResumeFormData {
   selectedTemplate?: ResumeTemplate;
 }
 
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 interface ResumeFormContextValue {
   formData: ResumeFormData;
   updateFormData: <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => void;
@@ -107,6 +109,8 @@ interface ResumeFormContextValue {
   setIsDirty: (dirty: boolean) => void;
   isSaving: boolean;
   setIsSaving: (saving: boolean) => void;
+  saveStatus: SaveStatus;
+  setSaveStatus: (status: SaveStatus) => void;
   isLoading: boolean;
   error: string | null;
   resumeId: string | null;
@@ -128,6 +132,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState<ResumeFormData>({});
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null); // Track which resume is currently loading
@@ -215,6 +220,8 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       setIsDirty,
       isSaving,
       setIsSaving,
+      saveStatus,
+      setSaveStatus,
       isLoading,
       error,
       resumeId,
@@ -230,6 +237,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       updateFormData,
       isDirty,
       isSaving,
+      saveStatus,
       isLoading,
       error,
       resumeId,
