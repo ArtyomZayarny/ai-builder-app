@@ -4,10 +4,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import type { ParsedResumeData } from '../services/pdfApi';
 import { ResumeFormProvider, useResumeForm } from '../contexts/ResumeFormContext';
 import { useAutoSave } from '../hooks/useAutoSave';
 import ResumeEditorLayout from '../components/ResumeEditorLayout';
@@ -32,6 +33,7 @@ import {
 
 function ResumeEditorContent() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentSection, setCurrentSection] = useState('personal-info');
   const [showPreview, setShowPreview] = useState(false);
 
@@ -45,6 +47,7 @@ function ResumeEditorContent() {
     error,
     setSaveStatus,
     saveStatus,
+    updateFormData,
   } = useResumeForm();
 
   // Auto-save hook
@@ -64,6 +67,75 @@ function ResumeEditorContent() {
       });
     },
   });
+
+  // Handle PDF import
+  useEffect(() => {
+    const importParam = searchParams.get('import');
+    if (importParam === 'pdf' && resumeId) {
+      const importedData = localStorage.getItem(`pdf-import-${resumeId}`);
+      if (importedData) {
+        try {
+          const parsedData = JSON.parse(importedData) as ParsedResumeData;
+
+          // Import personal info
+          if (parsedData.personalInfo) {
+            updateFormData('personalInfo', {
+              name: parsedData.personalInfo.name || '',
+              email: parsedData.personalInfo.email || '',
+              phone: parsedData.personalInfo.phone || '',
+              location: parsedData.personalInfo.location || '',
+              linkedinUrl: parsedData.personalInfo.linkedinUrl || '',
+              portfolioUrl: parsedData.personalInfo.portfolioUrl || '',
+            });
+          }
+
+          // Import summary
+          if (parsedData.summary?.content) {
+            updateFormData('summary', { content: parsedData.summary.content });
+          }
+
+          // Import experiences
+          if (parsedData.experiences && parsedData.experiences.length > 0) {
+            updateFormData('experiences', parsedData.experiences);
+          }
+
+          // Import education
+          if (parsedData.education && parsedData.education.length > 0) {
+            updateFormData('education', parsedData.education);
+          }
+
+          // Import projects
+          if (parsedData.projects && parsedData.projects.length > 0) {
+            // Normalize projects to ensure technologies is always an array
+            const normalizedProjects = parsedData.projects.map(project => ({
+              ...project,
+              technologies: project.technologies || [],
+            }));
+            updateFormData('projects', normalizedProjects);
+          }
+
+          // Import skills
+          if (parsedData.skills && parsedData.skills.length > 0) {
+            updateFormData('skills', parsedData.skills);
+          }
+
+          // Clear imported data
+          localStorage.removeItem(`pdf-import-${resumeId}`);
+
+          // Remove import param from URL
+          searchParams.delete('import');
+          navigate(`/resume/${resumeId}`, { replace: true });
+
+          toast.success('PDF data imported!', {
+            description: `Confidence: ${Math.round(parsedData.confidence * 100)}% - Please review and edit the imported data.`,
+          });
+        } catch (err) {
+          console.error('Failed to import PDF data:', err);
+          toast.error('Failed to import PDF data');
+        }
+      }
+    }
+  }, [resumeId, searchParams, updateFormData, navigate]);
 
   // Check if all required fields are filled
   const isCreateEnabled = Boolean(

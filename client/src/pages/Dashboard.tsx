@@ -4,12 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, FileText, AlertCircle, Loader2, LogIn, LogOut, User } from 'lucide-react';
+import { Plus, FileText, AlertCircle, Loader2, LogIn, LogOut, User, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
-import { getAllResumes, deleteResume, duplicateResume } from '../services/resumeApi';
+import PDFUploadModal from '../components/PDFUploadModal';
+import { getAllResumes, deleteResume, duplicateResume, createResume } from '../services/resumeApi';
 import { useAuth } from '../contexts/AuthContext';
 import type { Resume } from '../types/resume';
+import type { ParsedResumeData } from '../services/pdfApi';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export default function Dashboard() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPDFModal, setShowPDFModal] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -83,6 +86,20 @@ export default function Dashboard() {
         resume.id === id ? { ...resume, is_public: isPublic, public_id: publicId } : resume
       )
     );
+  };
+
+  const handlePDFImport = async (parsedData: ParsedResumeData) => {
+    setShowPDFModal(false);
+    // Create a new resume entry in the database
+    const newResume = await createResume({
+      title: parsedData.personalInfo?.name
+        ? `${parsedData.personalInfo.name}'s Resume (Imported)`
+        : 'Imported Resume',
+    });
+
+    // Store parsed data in localStorage and redirect to editor
+    localStorage.setItem(`pdf-import-${newResume.id}`, JSON.stringify(parsedData));
+    navigate(`/resume/${newResume.id}?import=pdf`);
   };
 
   // Loading state
@@ -179,13 +196,22 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
-            <button
-              onClick={handleCreateResume}
-              className="btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-            >
-              <Plus size={20} />
-              <span className="ml-2">New Resume</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowPDFModal(true)}
+                className="btn-secondary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <Upload size={20} />
+                <span className="ml-2">Upload PDF</span>
+              </button>
+              <button
+                onClick={handleCreateResume}
+                className="btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <Plus size={20} />
+                <span className="ml-2">New Resume</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -209,6 +235,12 @@ export default function Dashboard() {
           ))}
         </div>
       </main>
+
+      <PDFUploadModal
+        isOpen={showPDFModal}
+        onClose={() => setShowPDFModal(false)}
+        onImport={handlePDFImport}
+      />
     </div>
   );
 }

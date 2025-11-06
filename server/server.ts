@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes.js';
 import resumeRoutes from './routes/resume.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import imagekitRoutes from './routes/imagekit.routes.js';
+import pdfParserRoutes from './routes/pdfParser.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { securityHeaders } from './middleware/securityHeaders.js';
 
@@ -100,6 +101,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/imagekit', imagekitRoutes);
+app.use('/api/pdf', pdfParserRoutes);
 
 // Public resume route (no auth required)
 import resumeController from './controllers/resume.controller.js';
