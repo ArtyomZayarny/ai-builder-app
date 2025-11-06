@@ -26,8 +26,9 @@ interface PublicResumeData extends ResumeData {
     email?: string;
     phone?: string;
     location?: string;
-    linkedinUrl?: string;
-    portfolioUrl?: string;
+    linkedin_url?: string;
+    portfolio_url?: string;
+    photo_url?: string;
   };
 }
 
@@ -110,8 +111,18 @@ export default function PublicResume() {
 
   // Render template based on resume.template
   const renderTemplate = () => {
+    // Map database fields to frontend format
+    const personalInfo = resume.personalInfo
+      ? {
+          ...resume.personalInfo,
+          linkedinUrl: resume.personalInfo.linkedin_url,
+          portfolioUrl: resume.personalInfo.portfolio_url,
+          photoUrl: resume.personalInfo.photo_url,
+        }
+      : undefined;
+
     const templateData: ResumeData = {
-      personalInfo: resume.personalInfo,
+      personalInfo,
       summary: resume.summary,
       experiences: resume.experiences,
       education: resume.education,

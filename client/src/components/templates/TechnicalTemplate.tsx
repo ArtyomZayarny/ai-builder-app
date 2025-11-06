@@ -26,12 +26,26 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
           <header className="mb-8 bg-gray-900 text-white p-6 rounded-lg">
             <div className="font-mono">
               <div className="text-xs text-gray-400 mb-2">&lt;header&gt;</div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight">
-                {personalInfo.name || 'Your Name'}
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 mb-4 font-light">
-                {personalInfo.role || 'Your Professional Title'}
-              </p>
+              <div className="flex items-start gap-4">
+                {/* Profile Photo */}
+                {personalInfo.photoUrl && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={personalInfo.photoUrl}
+                      alt={personalInfo.name || 'Profile'}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-700"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight">
+                    {personalInfo.name || 'Your Name'}
+                  </h1>
+                  <p className="text-lg md:text-xl text-gray-300 mb-4 font-light">
+                    {personalInfo.role || 'Your Professional Title'}
+                  </p>
+                </div>
+              </div>
 
               {/* Contact Info - Code-like */}
               <div className="text-sm space-y-1 text-gray-300 font-normal">

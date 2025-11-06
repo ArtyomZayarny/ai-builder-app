@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonalInfoSchema, type PersonalInfo } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useRef } from 'react';
+import ProfilePhotoUpload from '../ProfilePhotoUpload';
 
 export default function PersonalInfoSection() {
   const { formData, updateFormData } = useResumeForm();
@@ -58,6 +59,19 @@ export default function PersonalInfoSection() {
       </div>
 
       <form className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+        {/* Profile Photo Upload */}
+        <ProfilePhotoUpload
+          currentPhotoUrl={formData.personalInfo?.photoUrl}
+          onPhotoUploaded={url => {
+            const currentValues = getValues();
+            updateFormData('personalInfo', { ...currentValues, photoUrl: url });
+          }}
+          onPhotoRemoved={() => {
+            const currentValues = getValues();
+            updateFormData('personalInfo', { ...currentValues, photoUrl: '' });
+          }}
+        />
+
         {/* Name (Required) */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">

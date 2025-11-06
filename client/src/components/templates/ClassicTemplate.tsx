@@ -28,12 +28,29 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
             className="mb-8 pb-6 border-b-2"
             style={{ borderColor: `rgb(var(--resume-accent-color))` }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 tracking-tight">
-              {personalInfo.name || 'Your Name'}
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-700 mb-4 font-medium">
-              {personalInfo.role || 'Your Professional Title'}
-            </p>
+            <div className="flex items-start gap-6">
+              {/* Profile Photo */}
+              {personalInfo.photoUrl && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={personalInfo.photoUrl}
+                    alt={personalInfo.name || 'Profile'}
+                    className="w-24 h-24 rounded-full object-cover border-2"
+                    style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+                  />
+                </div>
+              )}
+
+              {/* Name and Title */}
+              <div className="flex-1">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 tracking-tight">
+                  {personalInfo.name || 'Your Name'}
+                </h1>
+                <p className="text-xl md:text-2xl text-gray-700 mb-4 font-medium">
+                  {personalInfo.role || 'Your Professional Title'}
+                </p>
+              </div>
+            </div>
 
             {/* Contact Info - Optimized for ATS */}
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-700">

@@ -127,6 +127,7 @@ export const savePersonalInfo = async (
     location?: string;
     linkedinUrl?: string;
     portfolioUrl?: string;
+    photoUrl?: string;
   }
 ): Promise<void> => {
   const response = await fetch(`${API_BASE}/${resumeId}/personal-info`, {

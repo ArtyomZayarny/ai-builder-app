@@ -7,6 +7,7 @@ import pool, { closePool } from './db/connection.js';
 // import userRoutes from './routes/users.js'; // TODO: Migrate to TypeScript
 import resumeRoutes from './routes/resume.routes.js';
 import aiRoutes from './routes/ai.routes.js';
+import imagekitRoutes from './routes/imagekit.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -93,6 +94,7 @@ if (process.env.NODE_ENV !== 'production') {
 // app.use('/api/users', userRoutes); // TODO: Migrate to TypeScript
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/imagekit', imagekitRoutes);
 
 // Public resume route (no auth required)
 import resumeController from './controllers/resume.controller.js';

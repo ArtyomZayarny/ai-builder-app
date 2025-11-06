@@ -25,13 +25,25 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         {personalInfo && (
           <header className="mb-8 pb-6 border-b-4 border-gray-900">
             <div className="flex items-start justify-between flex-wrap gap-4">
-              <div className="flex-1 min-w-[250px]">
-                <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-1 tracking-tight">
-                  {personalInfo.name || 'Your Name'}
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-700 font-medium italic">
-                  {personalInfo.role || 'Your Professional Title'}
-                </p>
+              <div className="flex items-start gap-4 flex-1 min-w-[250px]">
+                {/* Profile Photo */}
+                {personalInfo.photoUrl && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={personalInfo.photoUrl}
+                      alt={personalInfo.name || 'Profile'}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-900"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-1 tracking-tight">
+                    {personalInfo.name || 'Your Name'}
+                  </h1>
+                  <p className="text-xl md:text-2xl text-gray-700 font-medium italic">
+                    {personalInfo.role || 'Your Professional Title'}
+                  </p>
+                </div>
               </div>
 
               {/* Contact Info - Stacked */}

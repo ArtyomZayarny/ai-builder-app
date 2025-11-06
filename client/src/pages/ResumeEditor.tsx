@@ -153,6 +153,7 @@ function ResumeEditorContent() {
         location: formData.personalInfo!.location || '',
         linkedinUrl: formData.personalInfo!.linkedinUrl || '',
         portfolioUrl: formData.personalInfo!.portfolioUrl || '',
+        photoUrl: formData.personalInfo!.photoUrl || '',
       });
 
       if (formData.summary?.content?.trim()) {

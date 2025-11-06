@@ -25,6 +25,17 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Header - Personal Info */}
         {personalInfo && (
           <header className="mb-10 text-center">
+            {/* Profile Photo */}
+            {personalInfo.photoUrl && (
+              <div className="flex justify-center mb-6">
+                <img
+                  src={personalInfo.photoUrl}
+                  alt={personalInfo.name || 'Profile'}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                  style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+                />
+              </div>
+            )}
             <h1 className="text-5xl md:text-6xl font-light text-gray-900 mb-2 tracking-wide">
               {personalInfo.name || 'Your Name'}
             </h1>

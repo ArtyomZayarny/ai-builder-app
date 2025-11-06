@@ -52,6 +52,7 @@ async function fetchResumeData(id: string) {
             location: personalInfoRes.value.location || '',
             linkedinUrl: personalInfoRes.value.linkedin_url || '',
             portfolioUrl: personalInfoRes.value.portfolio_url || '',
+            photoUrl: personalInfoRes.value.photo_url || '',
           }
         : undefined,
     summary:
@@ -83,6 +84,7 @@ interface ResumeFormData {
     location?: string;
     linkedinUrl?: string;
     portfolioUrl?: string;
+    photoUrl?: string;
   };
   // Summary
   summary?: {

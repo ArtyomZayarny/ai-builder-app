@@ -163,8 +163,9 @@ class ResumeService {
            phone = COALESCE($4, phone),
            location = COALESCE($5, location),
            linkedin_url = COALESCE($6, linkedin_url),
-           portfolio_url = COALESCE($7, portfolio_url)
-       WHERE resume_id = $8 
+           portfolio_url = COALESCE($7, portfolio_url),
+           photo_url = COALESCE($8, photo_url)
+       WHERE resume_id = $9 
        RETURNING *`,
       [
         data.name,
@@ -174,6 +175,7 @@ class ResumeService {
         data.location || null,
         data.linkedinUrl || null,
         data.portfolioUrl || null,
+        data.photoUrl || null,
         resumeId,
       ]
     );

@@ -20,6 +20,7 @@ export const PersonalInfoSchema = z.object({
     .url('Invalid portfolio URL')
     .optional()
     .or(z.literal('')),
+  photoUrl: z.string().url('Invalid photo URL').optional().or(z.literal('')),
 });
 
 // For database updates (all fields optional)

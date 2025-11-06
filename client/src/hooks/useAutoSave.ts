@@ -25,6 +25,7 @@ interface ResumeFormData {
     location?: string;
     linkedinUrl?: string;
     portfolioUrl?: string;
+    photoUrl?: string;
   };
   summary?: {
     content?: string;
@@ -85,6 +86,7 @@ export function useAutoSave({
           location: formData.personalInfo.location || '',
           linkedinUrl: formData.personalInfo.linkedinUrl || '',
           portfolioUrl: formData.personalInfo.portfolioUrl || '',
+          photoUrl: formData.personalInfo.photoUrl || '',
         });
       }
 
