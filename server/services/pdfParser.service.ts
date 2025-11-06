@@ -3,8 +3,12 @@
  * Extracts resume data from uploaded PDF files
  */
 
-import pdfParse from 'pdf-parse';
 import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
+import { createRequire } from 'module';
+
+// Use createRequire for CommonJS module
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 
 interface ParsedResumeData {
   personalInfo?: {
@@ -30,8 +34,7 @@ interface ParsedResumeData {
  */
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // pdf-parse is a default export function
-    const data = await (pdfParse as any)(buffer);
+    const data = await pdfParse(buffer);
     return data.text;
   } catch (error) {
     throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
