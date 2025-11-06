@@ -70,19 +70,9 @@ export default function SkillsSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Skills</h2>
-          <p className="text-gray-600">List your technical and professional skills</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={20} />
-          Add Skill
-        </button>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Skills</h2>
+        <p className="text-gray-600">List your technical and professional skills</p>
       </div>
 
       {fields.length === 0 ? (
@@ -137,6 +127,15 @@ export default function SkillsSection() {
               </div>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 mt-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-blue-600 hover:text-blue-600 transition-colors"
+          >
+            <Plus size={20} />
+            Add Another Skill
+          </button>
 
           {fields.length === 0 && (
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
