@@ -203,7 +203,7 @@ function ResumeEditorContent() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Resume</h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={() => navigate('/')} className="btn-primary w-full">
+          <button onClick={() => navigate('/dashboard')} className="btn-primary w-full">
             Back to Dashboard
           </button>
         </div>
@@ -274,7 +274,7 @@ function ResumeEditorContent() {
 
       // Redirect to dashboard after 500ms
       setTimeout(() => {
-        navigate('/');
+        navigate('/dashboard');
       }, 500);
     } catch (error) {
       console.error('❌ Create failed:', error);
@@ -344,7 +344,7 @@ function ResumeEditorContent() {
       if (!isNewResume && isDirty && resumeId) {
         await saveAllData();
       }
-      navigate('/');
+      navigate('/dashboard');
     } catch {
       // Error already shown in saveAllData, stay on page
       console.error('Navigation cancelled due to save error');

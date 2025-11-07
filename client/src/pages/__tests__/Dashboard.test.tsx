@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '../../test/utils';
 import Dashboard from '../Dashboard';
 import * as resumeApi from '../../services/resumeApi';
 import { Resume } from '../../types/resume';
+import * as authContext from '../../contexts/AuthContext';
 
 // Mock the API module
 vi.mock('../../services/resumeApi', () => ({
@@ -11,6 +12,25 @@ vi.mock('../../services/resumeApi', () => ({
   deleteResume: vi.fn(),
   duplicateResume: vi.fn(),
 }));
+
+// Mock the AuthContext
+vi.mock('../../contexts/AuthContext', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../contexts/AuthContext')>();
+  return {
+    ...actual,
+    useAuth: vi.fn(),
+  };
+});
+
+// Mock react-router-dom
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 describe('Dashboard', () => {
   const mockResumes: Resume[] = [
@@ -38,6 +58,21 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    mockNavigate.mockClear();
+    // Mock authenticated user by default
+    vi.mocked(authContext.useAuth).mockReturnValue({
+      user: {
+        id: 1,
+        email: 'test@example.com',
+        emailVerified: true,
+      },
+      loading: false,
+      isAuthenticated: true,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   it('shows loading state initially', () => {

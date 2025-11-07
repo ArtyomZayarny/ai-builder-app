@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import './App.css';
 
 // Lazy load pages for code splitting
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ResumeEditor = lazy(() => import('./pages/ResumeEditor'));
 const PublicResume = lazy(() => import('./pages/PublicResume'));
@@ -41,7 +42,8 @@ function App() {
           />
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/resume/:id" element={<ResumeEditor />} />
