@@ -113,30 +113,34 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-});
-
-// Graceful shutdown
-const gracefulShutdown = async () => {
-  console.log('\n🔄 Shutting down gracefully...');
-  server.close(async () => {
-    console.log('✅ HTTP server closed');
-    await closePool();
-    process.exit(0);
+// Only start server if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1') {
+  // Start server
+  const server = app.listen(PORT, () => {
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
   });
 
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    console.error('❌ Forcing shutdown after timeout');
-    process.exit(1);
-  }, 10000);
-};
+  // Graceful shutdown
+  const gracefulShutdown = async () => {
+    console.log('\n🔄 Shutting down gracefully...');
+    server.close(async () => {
+      console.log('✅ HTTP server closed');
+      await closePool();
+      process.exit(0);
+    });
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      console.error('❌ Forcing shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
 
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
+}
+
+// Export app for Vercel serverless functions
 export default app;
 
