@@ -5,7 +5,7 @@
 
 import type { Request, Response } from 'express';
 import multer from 'multer';
-import { uploadImage } from '../services/imagekit.service.js';
+import { uploadImage, isImageKitAvailable } from '../services/imagekit.service.js';
 import { successResponse } from '../utils/response.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { validateFileUpload } from '../middleware/fileUploadValidation.js';
@@ -34,6 +34,14 @@ export const uploadProfilePhoto = [
   upload.single('photo'),
   validateFileUpload,
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (!isImageKitAvailable()) {
+      res.status(503).json({
+        success: false,
+        error: 'ImageKit is not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT environment variables.',
+      });
+      return;
+    }
+
     if (!req.file) {
       res.status(400).json({
         success: false,

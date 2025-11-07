@@ -6,12 +6,41 @@
 import ImageKit from 'imagekit';
 import { ValidationError } from '../utils/errors.js';
 
-// Initialize ImageKit client
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-});
+// Lazy initialization of ImageKit client (only when needed and if keys are available)
+let imagekit: ImageKit | null = null;
+
+function getImageKitClient(): ImageKit {
+  if (!imagekit) {
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+    if (!publicKey || !privateKey || !urlEndpoint) {
+      throw new Error(
+        'ImageKit is not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT environment variables.'
+      );
+    }
+
+    imagekit = new ImageKit({
+      publicKey,
+      privateKey,
+      urlEndpoint,
+    });
+  }
+
+  return imagekit;
+}
+
+/**
+ * Check if ImageKit is available
+ */
+export function isImageKitAvailable(): boolean {
+  return !!(
+    process.env.IMAGEKIT_PUBLIC_KEY &&
+    process.env.IMAGEKIT_PRIVATE_KEY &&
+    process.env.IMAGEKIT_URL_ENDPOINT
+  );
+}
 
 /**
  * Upload image to ImageKit
@@ -37,7 +66,8 @@ export async function uploadImage(
 
     // Upload to ImageKit
     // Note: Transformations (like background removal) are applied via URL parameters when displaying
-    const uploadResponse = await imagekit.upload({
+    const client = getImageKitClient();
+    const uploadResponse = await client.upload({
       file: file.toString('base64'),
       fileName: fileName,
       folder: folder,
@@ -69,7 +99,8 @@ export async function uploadImage(
  */
 export async function deleteImage(fileId: string): Promise<void> {
   try {
-    await imagekit.deleteFile(fileId);
+    const client = getImageKitClient();
+    await client.deleteFile(fileId);
   } catch (error) {
     console.error('ImageKit delete error:', error);
     // Don't throw - deletion failures shouldn't block the main flow
@@ -85,7 +116,8 @@ export function getImageKitAuth(): {
   signature: string;
 } {
   try {
-    const authenticationParameters = imagekit.getAuthenticationParameters();
+    const client = getImageKitClient();
+    const authenticationParameters = client.getAuthenticationParameters();
     return authenticationParameters;
   } catch (error) {
     console.error('ImageKit auth error:', error);
