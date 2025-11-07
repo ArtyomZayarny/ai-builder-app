@@ -6,9 +6,23 @@
 import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
 import { createRequire } from 'module';
 
-// Use createRequire for CommonJS module
-const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+// Lazy import pdf-parse to avoid loading it on module initialization
+// This prevents errors in serverless environments where @napi-rs/canvas is not available
+let pdfParse: any = null;
+
+function getPdfParse() {
+  if (!pdfParse) {
+    try {
+      const require = createRequire(import.meta.url);
+      pdfParse = require('pdf-parse');
+    } catch (error) {
+      throw new Error(
+        'PDF parsing is not available in this environment. pdf-parse requires native dependencies that are not available in serverless environments.'
+      );
+    }
+  }
+  return pdfParse;
+}
 
 interface ParsedResumeData {
   personalInfo?: {
@@ -34,9 +48,13 @@ interface ParsedResumeData {
  */
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    const data = await pdfParse(buffer);
+    const pdfParser = getPdfParse();
+    const data = await pdfParser(buffer);
     return data.text;
   } catch (error) {
+    if (error instanceof Error && error.message.includes('not available')) {
+      throw error; // Re-throw our custom error
+    }
     throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
