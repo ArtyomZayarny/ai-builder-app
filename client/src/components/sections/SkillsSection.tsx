@@ -32,9 +32,10 @@ export default function SkillsSection() {
     control,
     formState: { errors },
     setValue,
-    watch,
+    getValues,
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
+    mode: 'onChange', // Enable real-time updates
     defaultValues: {
       skills: formData.skills || [],
     },
@@ -45,20 +46,22 @@ export default function SkillsSection() {
     name: 'skills',
   });
 
-  const watchedSkills = watch('skills');
-
   // Load data from API only once on mount
   useEffect(() => {
     if (formData.skills && formData.skills.length > 0) {
-      setValue('skills', formData.skills as any);
+      setValue('skills', formData.skills as FormData['skills']);
     }
   }, []); // Only run once
 
-  useEffect(() => {
-    if (watchedSkills && watchedSkills.length > 0) {
-      updateFormData('skills', watchedSkills as Skill[]);
+  // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
+  const handleFieldChange = () => {
+    const currentSkills = getValues('skills') || [];
+    if (currentSkills.length > 0) {
+      updateFormData('skills', currentSkills as Skill[]);
+    } else {
+      updateFormData('skills', []);
     }
-  }, [watchedSkills, updateFormData]);
+  };
 
   const handleAdd = () => {
     append({
@@ -66,6 +69,18 @@ export default function SkillsSection() {
       category: '',
       order: fields.length,
     });
+    // Update context after adding new skill
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
+  };
+
+  const handleRemove = (index: number) => {
+    remove(index);
+    // Update context after removing skill
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
   };
 
   return (
@@ -97,7 +112,7 @@ export default function SkillsSection() {
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <input
-                      {...register(`skills.${index}.name`)}
+                      {...register(`skills.${index}.name`, { onChange: handleFieldChange })}
                       type="text"
                       className="w-full px-3 py-2 border rounded-lg"
                       placeholder="e.g., React, Leadership, Python"
@@ -110,7 +125,7 @@ export default function SkillsSection() {
                   </div>
                   <div>
                     <input
-                      {...register(`skills.${index}.category`)}
+                      {...register(`skills.${index}.category`, { onChange: handleFieldChange })}
                       type="text"
                       className="w-full px-3 py-2 border rounded-lg"
                       placeholder="Category (e.g., Frontend, Soft Skills)"
@@ -119,7 +134,7 @@ export default function SkillsSection() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => handleRemove(index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg mt-0.5"
                 >
                   <Trash2 size={20} />

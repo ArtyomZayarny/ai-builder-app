@@ -25,6 +25,21 @@ import {
 
 import type { Experience, Education, Project, Skill } from '@resume-builder/shared';
 
+// Helper function to check if project is empty
+function isProjectEmpty(project: {
+  name?: string;
+  description?: string;
+  technologies?: string | string[];
+}): boolean {
+  return (
+    !project.name?.trim() &&
+    !project.description?.trim() &&
+    (!project.technologies ||
+      (typeof project.technologies === 'string' && !project.technologies.trim()) ||
+      (Array.isArray(project.technologies) && project.technologies.length === 0))
+  );
+}
+
 // ✅ Move loading logic OUTSIDE component - stable reference, no useCallback needed
 async function fetchResumeData(id: string) {
   console.log('🔄 Loading resume data for ID:', id);
@@ -39,6 +54,12 @@ async function fetchResumeData(id: string) {
       getProjects(id),
       getSkills(id),
     ]);
+
+  // Filter out empty projects when loading from DB
+  const projects =
+    projectsRes.status === 'fulfilled' && projectsRes.value
+      ? projectsRes.value.filter((p: Project) => !isProjectEmpty(p))
+      : undefined;
 
   // Return structured data
   return {
@@ -65,8 +86,7 @@ async function fetchResumeData(id: string) {
         : undefined,
     education:
       educationRes.status === 'fulfilled' && educationRes.value ? educationRes.value : undefined,
-    projects:
-      projectsRes.status === 'fulfilled' && projectsRes.value ? projectsRes.value : undefined,
+    projects: projects && projects.length > 0 ? projects : undefined,
     skills: skillsRes.status === 'fulfilled' && skillsRes.value ? skillsRes.value : undefined,
   };
 }

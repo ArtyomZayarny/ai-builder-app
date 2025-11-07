@@ -12,18 +12,18 @@ import { Plus, Trash2, Briefcase, Sparkles } from 'lucide-react';
 import { enhanceExperience } from '../../services/aiApi';
 import { toast } from 'sonner';
 
-// Array schema for form
+// Array schema for form - all fields optional
 const FormSchema = z.object({
   experiences: z.array(
     z.object({
       id: z.number().optional(),
-      company: z.string(),
-      role: z.string(),
+      company: z.string().optional(),
+      role: z.string().optional(),
       location: z.string().optional(),
-      startDate: z.string(),
+      startDate: z.string().optional(),
       endDate: z.string().optional().nullable(),
-      isCurrent: z.boolean(),
-      description: z.string(),
+      isCurrent: z.boolean().optional(),
+      description: z.string().optional(),
       order: z.number().optional(),
     })
   ),
@@ -40,9 +40,11 @@ export default function ExperienceSection() {
     control,
     formState: { errors },
     setValue,
+    getValues,
     watch,
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
+    mode: 'onChange', // Enable real-time updates
     defaultValues: {
       experiences: formData.experiences || [],
     },
@@ -53,20 +55,25 @@ export default function ExperienceSection() {
     name: 'experiences',
   });
 
+  // Watch for isCurrent changes to show/hide endDate
   const watchedExperiences = watch('experiences');
 
   // Load data from API only once on mount
   useEffect(() => {
     if (formData.experiences && formData.experiences.length > 0) {
-      setValue('experiences', formData.experiences as any);
+      setValue('experiences', formData.experiences as FormData['experiences']);
     }
   }, []); // Only run once
 
-  useEffect(() => {
-    if (watchedExperiences && watchedExperiences.length > 0) {
-      updateFormData('experiences', watchedExperiences as Experience[]);
+  // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
+  const handleFieldChange = () => {
+    const currentExperiences = getValues('experiences') || [];
+    if (currentExperiences.length > 0) {
+      updateFormData('experiences', currentExperiences as Experience[]);
+    } else {
+      updateFormData('experiences', []);
     }
-  }, [watchedExperiences, updateFormData]);
+  };
 
   const handleAdd = () => {
     append({
@@ -79,6 +86,18 @@ export default function ExperienceSection() {
       description: '',
       order: fields.length,
     });
+    // Update context after adding new experience
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
+  };
+
+  const handleRemove = (index: number) => {
+    remove(index);
+    // Update context after removing experience
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
   };
 
   // Handle AI Enhancement for specific experience
@@ -101,13 +120,6 @@ export default function ExperienceSection() {
       return;
     }
 
-    if (!experience.role || !experience.company) {
-      toast.error('Missing information', {
-        description: 'Please fill in role and company first',
-      });
-      return;
-    }
-
     setEnhancingIndex(index);
     const enhanceToast = toast.loading('AI is enhancing your experience...', {
       description: 'This may take a few seconds',
@@ -115,8 +127,8 @@ export default function ExperienceSection() {
 
     try {
       const enhanced = await enhanceExperience(
-        experience.role,
-        experience.company,
+        experience.role || '',
+        experience.company || '',
         experience.description
       );
 
@@ -128,6 +140,8 @@ export default function ExperienceSection() {
 
       // Update the form with enhanced content
       setValue(`experiences.${index}.description`, enhanced);
+      // Update context after AI enhancement
+      handleFieldChange();
     } catch (error) {
       console.error('AI Enhancement error:', error);
       toast.error('Enhancement failed', {
@@ -168,7 +182,7 @@ export default function ExperienceSection() {
                 <h3 className="text-lg font-semibold text-gray-900">Position {index + 1}</h3>
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => handleRemove(index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <Trash2 size={20} />
@@ -179,7 +193,7 @@ export default function ExperienceSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
                   <input
-                    {...register(`experiences.${index}.company`)}
+                    {...register(`experiences.${index}.company`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Google"
@@ -194,7 +208,7 @@ export default function ExperienceSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
                   <input
-                    {...register(`experiences.${index}.role`)}
+                    {...register(`experiences.${index}.role`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Senior Engineer"
@@ -204,7 +218,7 @@ export default function ExperienceSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                   <input
-                    {...register(`experiences.${index}.location`)}
+                    {...register(`experiences.${index}.location`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., San Francisco, CA"
@@ -214,7 +228,7 @@ export default function ExperienceSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                   <input
-                    {...register(`experiences.${index}.startDate`)}
+                    {...register(`experiences.${index}.startDate`, { onChange: handleFieldChange })}
                     type="month"
                     className="w-full px-3 py-2 border rounded-lg"
                   />
@@ -223,7 +237,9 @@ export default function ExperienceSection() {
                 <div className="md:col-span-2">
                   <label className="flex items-center gap-2">
                     <input
-                      {...register(`experiences.${index}.isCurrent`)}
+                      {...register(`experiences.${index}.isCurrent`, {
+                        onChange: handleFieldChange,
+                      })}
                       type="checkbox"
                       className="w-4 h-4 text-blue-600 rounded"
                     />
@@ -235,7 +251,7 @@ export default function ExperienceSection() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                     <input
-                      {...register(`experiences.${index}.endDate`)}
+                      {...register(`experiences.${index}.endDate`, { onChange: handleFieldChange })}
                       type="month"
                       className="w-full px-3 py-2 border rounded-lg"
                     />
@@ -246,7 +262,7 @@ export default function ExperienceSection() {
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
-                  {...register(`experiences.${index}.description`)}
+                  {...register(`experiences.${index}.description`, { onChange: handleFieldChange })}
                   rows={4}
                   className="w-full px-3 py-2 border rounded-lg resize-none"
                   placeholder="Describe your role, responsibilities, and achievements..."

@@ -53,7 +53,7 @@ export default function TemplateSelector() {
         <p className="text-sm text-gray-600">Select a resume design that fits your style</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {TEMPLATES.map(template => (
           <button
             key={template.id}

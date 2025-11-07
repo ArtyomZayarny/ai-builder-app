@@ -34,7 +34,7 @@ import {
 function ResumeEditorContent() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentSection, setCurrentSection] = useState('personal-info');
+  const [currentSection, setCurrentSectionState] = useState('personal-info');
   const [showPreview, setShowPreview] = useState(false);
 
   const {
@@ -67,6 +67,23 @@ function ResumeEditorContent() {
       });
     },
   });
+
+  // Handle section change with auto-save if form is dirty
+  const handleSectionChange = useCallback(
+    async (newSection: string) => {
+      // If form is dirty and resume exists, save before switching sections
+      if (isDirty && !isNewResume && resumeId) {
+        try {
+          await manualSave();
+        } catch (error) {
+          console.error('Failed to save before section change:', error);
+          // Continue with section change even if save fails
+        }
+      }
+      setCurrentSectionState(newSection);
+    },
+    [isDirty, isNewResume, resumeId, manualSave]
+  );
 
   // Handle PDF import
   useEffect(() => {
@@ -365,7 +382,7 @@ function ResumeEditorContent() {
   return (
     <ResumeEditorLayout
       currentSection={currentSection}
-      onSectionChange={setCurrentSection}
+      onSectionChange={handleSectionChange}
       showPreview={showPreview}
       onTogglePreview={() => setShowPreview(!showPreview)}
       previewPanel={<ResumePreview />}

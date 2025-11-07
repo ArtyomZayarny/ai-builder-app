@@ -36,9 +36,10 @@ export default function EducationSection() {
     control,
     formState: { errors },
     setValue,
-    watch,
+    getValues,
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
+    mode: 'onChange', // Enable real-time updates
     defaultValues: {
       education: formData.education || [],
     },
@@ -49,20 +50,22 @@ export default function EducationSection() {
     name: 'education',
   });
 
-  const watchedEducation = watch('education');
-
   // Load data from API only once on mount
   useEffect(() => {
     if (formData.education && formData.education.length > 0) {
-      setValue('education', formData.education as any);
+      setValue('education', formData.education as FormData['education']);
     }
   }, []); // Only run once
 
-  useEffect(() => {
-    if (watchedEducation && watchedEducation.length > 0) {
-      updateFormData('education', watchedEducation as Education[]);
+  // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
+  const handleFieldChange = () => {
+    const currentEducation = getValues('education') || [];
+    if (currentEducation.length > 0) {
+      updateFormData('education', currentEducation as Education[]);
+    } else {
+      updateFormData('education', []);
     }
-  }, [watchedEducation, updateFormData]);
+  };
 
   const handleAdd = () => {
     append({
@@ -74,6 +77,18 @@ export default function EducationSection() {
       gpa: '',
       order: fields.length,
     });
+    // Update context after adding new education
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
+  };
+
+  const handleRemove = (index: number) => {
+    remove(index);
+    // Update context after removing education
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
   };
 
   return (
@@ -104,7 +119,7 @@ export default function EducationSection() {
                 <h3 className="text-lg font-semibold text-gray-900">Education {index + 1}</h3>
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => handleRemove(index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <Trash2 size={20} />
@@ -117,7 +132,7 @@ export default function EducationSection() {
                     Institution
                   </label>
                   <input
-                    {...register(`education.${index}.institution`)}
+                    {...register(`education.${index}.institution`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Stanford University"
@@ -132,7 +147,7 @@ export default function EducationSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
                   <input
-                    {...register(`education.${index}.degree`)}
+                    {...register(`education.${index}.degree`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Bachelor of Science"
@@ -144,7 +159,7 @@ export default function EducationSection() {
                     Field of Study
                   </label>
                   <input
-                    {...register(`education.${index}.field`)}
+                    {...register(`education.${index}.field`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Computer Science"
@@ -154,7 +169,7 @@ export default function EducationSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                   <input
-                    {...register(`education.${index}.location`)}
+                    {...register(`education.${index}.location`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., Palo Alto, CA"
@@ -166,7 +181,9 @@ export default function EducationSection() {
                     Graduation Date
                   </label>
                   <input
-                    {...register(`education.${index}.graduationDate`)}
+                    {...register(`education.${index}.graduationDate`, {
+                      onChange: handleFieldChange,
+                    })}
                     type="month"
                     className="w-full px-3 py-2 border rounded-lg"
                   />
@@ -177,7 +194,7 @@ export default function EducationSection() {
                     GPA (Optional)
                   </label>
                   <input
-                    {...register(`education.${index}.gpa`)}
+                    {...register(`education.${index}.gpa`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., 3.8/4.0"

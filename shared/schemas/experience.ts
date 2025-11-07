@@ -8,34 +8,42 @@ const ExperienceBaseSchema = z.object({
   id: z.number().optional(),
   company: z.string().max(255).optional(),
   role: z.string().max(255).optional(),
-  location: z.string().max(255).optional().or(z.literal('')),
+  location: z.string().max(255).optional(),
   startDate: z
     .string()
-    .regex(
-      /^\d{4}-\d{2}(-\d{2})?$/,
+    .optional()
+    .refine(
+      (val) => !val || val === '' || /^\d{4}-\d{2}(-\d{2})?$/.test(val),
       'Invalid date format (use YYYY-MM or YYYY-MM-DD)'
-    )
-    .optional(),
+    ),
   endDate: z
     .string()
-    .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format')
     .nullable()
-    .optional(),
-  isCurrent: z.boolean().default(false),
+    .optional()
+    .refine(
+      (val) => !val || val === '' || val === null || /^\d{4}-\d{2}(-\d{2})?$/.test(val),
+      'Invalid date format'
+    ),
+  isCurrent: z.boolean().default(false).optional(),
   description: z.string().max(2000).optional(),
-  order: z.number().int().min(0).default(0),
+  order: z.number().int().min(0).default(0).optional(),
 });
 
 /**
  * Work Experience Schema with validation
  * Details about employment history
- * All fields optional - only validates date logic if both dates provided
+ * All fields optional - only validates date logic if both dates provided and valid
  */
 export const ExperienceSchema = ExperienceBaseSchema.refine(
   (data) => {
-    // Only validate date logic if both dates are provided
-    if (data.startDate && data.endDate) {
-      return new Date(data.endDate) >= new Date(data.startDate);
+    // Only validate date logic if both dates are provided and not empty
+    if (data.startDate && data.endDate && data.startDate !== '' && data.endDate !== '') {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      // Check if dates are valid
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        return end >= start;
+      }
     }
     return true;
   },
@@ -45,12 +53,17 @@ export const ExperienceSchema = ExperienceBaseSchema.refine(
   }
 );
 
-// For creating new experience (no ID) - use base schema
+// For creating new experience (no ID) - all fields optional
 export const ExperienceCreateSchema = ExperienceBaseSchema.omit({ id: true }).refine(
   (data) => {
-    // Only validate date logic if both dates are provided
-    if (data.startDate && data.endDate) {
-      return new Date(data.endDate) >= new Date(data.startDate);
+    // Only validate date logic if both dates are provided and not empty
+    if (data.startDate && data.endDate && data.startDate !== '' && data.endDate !== '') {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      // Check if dates are valid
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        return end >= start;
+      }
     }
     return true;
   },

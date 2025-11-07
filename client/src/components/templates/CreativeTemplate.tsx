@@ -23,7 +23,10 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
       <div className="p-8 md:p-10">
         {/* Header - Personal Info with Accent */}
         {personalInfo && (
-          <header className="mb-8 pb-6 border-b-4 border-gray-900">
+          <header
+            className="mb-8 pb-6 border-b-4"
+            style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+          >
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex items-start gap-4 flex-1 min-w-[250px]">
                 {/* Profile Photo */}
@@ -32,7 +35,8 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                     <img
                       src={personalInfo.photoUrl}
                       alt={personalInfo.name || 'Profile'}
-                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-900"
+                      className="w-20 h-20 rounded-full object-cover border-2"
+                      style={{ borderColor: `rgb(var(--resume-accent-color))` }}
                     />
                   </div>
                 )}
@@ -60,7 +64,8 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                     href={personalInfo.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-blue-600 hover:text-blue-800 font-medium"
+                    className="block font-medium hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     LinkedIn →
                   </a>
@@ -70,7 +75,8 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                     href={personalInfo.portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-blue-600 hover:text-blue-800 font-medium"
+                    className="block font-medium hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     Portfolio →
                   </a>
@@ -83,7 +89,10 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         {/* Professional Summary with Accent Background */}
         {summary?.content && (
           <section className="mb-8">
-            <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-900">
+            <div
+              className="bg-gray-50 rounded-lg p-6 border-l-4"
+              style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+            >
               <h2 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-widest">
                 Professional Summary
               </h2>
@@ -98,14 +107,20 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         {experiences && experiences.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2">
-              <span className="inline-block w-8 h-0.5 bg-gray-900"></span>
+              <span
+                className="inline-block w-8 h-0.5"
+                style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+              ></span>
               Experience
             </h2>
             <div className="space-y-6 relative before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 pl-6">
               {experiences.map((exp, index) => (
                 <article key={index} className="break-inside-avoid relative">
                   {/* Timeline dot */}
-                  <div className="absolute -left-[1.6rem] top-2 w-3 h-3 rounded-full bg-gray-900 border-2 border-white"></div>
+                  <div
+                    className="absolute -left-[1.6rem] top-2 w-3 h-3 rounded-full border-2 border-white"
+                    style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+                  ></div>
 
                   <div className="bg-white">
                     <div className="flex justify-between items-baseline mb-2 flex-wrap gap-2">
@@ -136,7 +151,10 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           {education && education.length > 0 && (
             <section>
               <h2 className="text-xs font-bold text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2">
-                <span className="inline-block w-8 h-0.5 bg-gray-900"></span>
+                <span
+                  className="inline-block w-8 h-0.5"
+                  style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+                ></span>
                 Education
               </h2>
               <div className="space-y-5">
@@ -169,7 +187,10 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           {projects && projects.length > 0 && (
             <section>
               <h2 className="text-xs font-bold text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2">
-                <span className="inline-block w-8 h-0.5 bg-gray-900"></span>
+                <span
+                  className="inline-block w-8 h-0.5"
+                  style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+                ></span>
                 Projects
               </h2>
               <div className="space-y-5">
@@ -193,7 +214,8 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                         href={project.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800 underline inline-block mb-1.5"
+                        className="text-xs underline inline-block mb-1.5 hover:opacity-80 transition-opacity"
+                        style={{ color: `rgb(var(--resume-accent-color))` }}
                       >
                         {project.url}
                       </a>
@@ -212,7 +234,10 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         {skills && skills.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold text-gray-900 mb-6 uppercase tracking-widest flex items-center gap-2">
-              <span className="inline-block w-8 h-0.5 bg-gray-900"></span>
+              <span
+                className="inline-block w-8 h-0.5"
+                style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+              ></span>
               Skills
             </h2>
             <div className="space-y-4">

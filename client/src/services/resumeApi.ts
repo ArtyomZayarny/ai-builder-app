@@ -258,8 +258,61 @@ export const getEducation = async (resumeId: number | string): Promise<any[]> =>
 /**
  * Save/Get Projects
  */
-export const saveProjects = async (resumeId: number | string, projects: any[]): Promise<void> => {
+export const saveProjects = async (
+  resumeId: number | string,
+  projects: Array<{
+    id?: number;
+    name?: string;
+    description?: string;
+    technologies?: string | string[];
+    url?: string;
+    date?: string;
+    order?: number;
+  }>
+): Promise<void> => {
+  // Helper function to check if project is empty
+  const isProjectEmpty = (project: {
+    name?: string;
+    description?: string;
+    technologies?: string | string[];
+  }): boolean => {
+    return (
+      !project.name?.trim() &&
+      !project.description?.trim() &&
+      (!project.technologies ||
+        (typeof project.technologies === 'string' && !project.technologies.trim()) ||
+        (Array.isArray(project.technologies) && project.technologies.length === 0))
+    );
+  };
+
+  // Get existing projects from DB to track what needs to be deleted
+  const existingProjects = await getProjects(resumeId);
+  const currentProjectIds = new Set(
+    projects.filter(p => !isProjectEmpty(p) && p.id).map(p => p.id as number)
+  );
+
+  // Delete projects that exist in DB but not in current list (were removed)
+  for (const existingProject of existingProjects) {
+    if (!currentProjectIds.has(existingProject.id)) {
+      await fetch(`${API_BASE}/${resumeId}/projects/${existingProject.id}`, {
+        method: 'DELETE',
+      });
+    }
+  }
+
+  // Save/update non-empty projects
   for (const project of projects) {
+    // Skip empty projects
+    if (isProjectEmpty(project)) {
+      // If project has ID and is empty, delete it
+      if (project.id) {
+        await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
+          method: 'DELETE',
+        });
+      }
+      continue;
+    }
+
     if (project.id) {
       await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
         method: 'PUT',
@@ -281,6 +334,19 @@ export const getProjects = async (resumeId: number | string): Promise<any[]> => 
   if (!response.ok) throw new Error('Failed to fetch projects');
   const data: ApiResponse<any[]> = await response.json();
   return data.data || [];
+};
+
+export const deleteProject = async (
+  resumeId: number | string,
+  projectId: number
+): Promise<void> => {
+  const response = await fetch(`${API_BASE}/${resumeId}/projects/${projectId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete project');
+  }
 };
 
 /**

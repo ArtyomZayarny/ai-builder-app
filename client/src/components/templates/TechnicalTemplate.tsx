@@ -23,7 +23,10 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
       <div className="p-8 md:p-10 bg-gray-50">
         {/* Header - Technical Style */}
         {personalInfo && (
-          <header className="mb-8 bg-gray-900 text-white p-6 rounded-lg">
+          <header
+            className="mb-8 text-white p-6 rounded-lg"
+            style={{ backgroundColor: `rgb(var(--resume-accent-color))` }}
+          >
             <div className="font-mono">
               <div className="text-xs text-gray-400 mb-2">&lt;header&gt;</div>
               <div className="flex items-start gap-4">
@@ -71,7 +74,8 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                       href={personalInfo.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 underline"
+                      className="underline hover:opacity-80 transition-opacity"
+                      style={{ color: 'rgba(255, 255, 255, 0.9)' }}
                     >
                       {personalInfo.linkedinUrl}
                     </a>
@@ -84,7 +88,8 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                       href={personalInfo.portfolioUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 underline"
+                      className="underline hover:opacity-80 transition-opacity"
+                      style={{ color: 'rgba(255, 255, 255, 0.9)' }}
                     >
                       {personalInfo.portfolioUrl}
                     </a>
@@ -100,7 +105,7 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
         {skills && skills.length > 0 && (
           <section className="mb-8 bg-white p-6 rounded-lg border-2 border-gray-900">
             <h2 className="text-sm font-bold text-gray-900 mb-5 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-blue-600">//</span> Technical Skills
+              <span style={{ color: `rgb(var(--resume-accent-color))` }}>//</span> Technical Skills
             </h2>
             <div className="space-y-4">
               {(() => {
@@ -118,7 +123,7 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                 return Object.entries(grouped).map(([category, skillNames], index) => (
                   <div key={index} className="break-inside-avoid">
                     <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                      <span className="text-green-600">▸</span> {category}
+                      <span style={{ color: `rgb(var(--resume-accent-color))` }}>▸</span> {category}
                     </h3>
                     <div className="pl-5 flex flex-wrap gap-2">
                       {skillNames.map((skill, idx) => (
@@ -141,11 +146,15 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
         {projects && projects.length > 0 && (
           <section className="mb-8 bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-sm font-bold text-gray-900 mb-5 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-blue-600">//</span> Projects
+              <span style={{ color: `rgb(var(--resume-accent-color))` }}>//</span> Projects
             </h2>
             <div className="space-y-5">
               {projects.map((project, index) => (
-                <article key={index} className="break-inside-avoid border-l-4 border-blue-600 pl-4">
+                <article
+                  key={index}
+                  className="break-inside-avoid border-l-4 pl-4"
+                  style={{ borderColor: `rgb(var(--resume-accent-color))` }}
+                >
                   <div className="flex justify-between items-baseline mb-1 flex-wrap gap-2">
                     <h3 className="text-base font-bold text-gray-900">{project.name}</h3>
                     {project.date && (
@@ -159,7 +168,11 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                         {project.technologies.map((tech, idx) => (
                           <span
                             key={idx}
-                            className="text-xs bg-blue-50 text-blue-800 px-2 py-0.5 rounded font-mono"
+                            className="text-xs px-2 py-0.5 rounded font-mono"
+                            style={{
+                              backgroundColor: `rgb(var(--resume-accent-light))`,
+                              color: `rgb(var(--resume-accent-color))`,
+                            }}
                           >
                             {tech}
                           </span>
@@ -171,7 +184,8 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                       href={project.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 underline inline-block mb-2 font-mono"
+                      className="text-xs underline inline-block mb-2 font-mono hover:opacity-80 transition-opacity"
+                      style={{ color: `rgb(var(--resume-accent-color))` }}
                     >
                       {project.url}
                     </a>
@@ -189,7 +203,7 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
         {summary?.content && (
           <section className="mb-8 bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-blue-600">//</span> About
+              <span style={{ color: `rgb(var(--resume-accent-color))` }}>//</span> About
             </h2>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
               {summary.content}
@@ -201,7 +215,7 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
         {experiences && experiences.length > 0 && (
           <section className="mb-8 bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-sm font-bold text-gray-900 mb-5 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-blue-600">//</span> Experience
+              <span style={{ color: `rgb(var(--resume-accent-color))` }}>//</span> Experience
             </h2>
             <div className="space-y-6">
               {experiences.map((exp, index) => (
@@ -233,7 +247,7 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
         {education && education.length > 0 && (
           <section className="mb-8 bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-sm font-bold text-gray-900 mb-5 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-blue-600">//</span> Education
+              <span style={{ color: `rgb(var(--resume-accent-color))` }}>//</span> Education
             </h2>
             <div className="space-y-4">
               {education.map((edu, index) => (

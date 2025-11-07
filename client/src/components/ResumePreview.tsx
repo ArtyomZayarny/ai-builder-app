@@ -14,10 +14,10 @@ import { applyResumeTheme } from '../utils/resumeTheme';
 export default function ResumePreview() {
   const { formData, selectedTemplate, accentColor } = useResumeForm();
 
-  // Apply theme when accent color changes
+  // Apply theme when accent color or template changes
   useEffect(() => {
     applyResumeTheme(accentColor, 'resume-preview');
-  }, [accentColor]);
+  }, [accentColor, selectedTemplate]);
 
   // Select the template component based on selectedTemplate
   switch (selectedTemplate) {

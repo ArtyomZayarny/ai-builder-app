@@ -3,7 +3,7 @@
  * Handles API calls to the AI enhancement backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { BACKEND_URL } from '../config';
 
 interface AIEnhanceResponse {
   success: boolean;
@@ -23,7 +23,7 @@ export async function enhanceSummary(text: string): Promise<string> {
     throw new Error('Text cannot be empty');
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/ai/enhance/summary`, {
+  const response = await fetch(`${BACKEND_URL}/api/ai/enhance/summary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,8 +41,17 @@ export async function enhanceSummary(text: string): Promise<string> {
   }
 
   if (!response.ok) {
-    const data: AIEnhanceResponse = await response.json();
-    throw new Error(data.error || 'Failed to enhance summary');
+    let errorMessage = 'Failed to enhance summary';
+    try {
+      const data: AIEnhanceResponse = await response.json();
+      errorMessage = data.error || errorMessage;
+      console.error('❌ AI API Error Response:', data);
+    } catch {
+      const errorText = await response.text();
+      console.error('❌ AI API Error (non-JSON):', errorText);
+      errorMessage = `HTTP ${response.status}: ${errorText}`;
+    }
+    throw new Error(errorMessage);
   }
 
   const data: AIEnhanceResponse = await response.json();
@@ -66,16 +75,12 @@ export async function enhanceExperience(
     throw new Error('Description cannot be empty');
   }
 
-  if (!role || !company) {
-    throw new Error('Role and company are required');
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/ai/enhance/experience`, {
+  const response = await fetch(`${BACKEND_URL}/api/ai/enhance/experience`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ role, company, description }),
+    body: JSON.stringify({ role: role || '', company: company || '', description }),
   });
 
   if (response.status === 429) {
@@ -113,7 +118,7 @@ export async function enhanceProject(name: string, description: string): Promise
     throw new Error('Project name is required');
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/ai/enhance/project`, {
+  const response = await fetch(`${BACKEND_URL}/api/ai/enhance/project`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -153,7 +158,7 @@ export async function checkAIHealth(): Promise<{
   message: string;
 }> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/ai/health`);
+    const response = await fetch(`${BACKEND_URL}/api/ai/health`);
 
     if (!response.ok) {
       return {

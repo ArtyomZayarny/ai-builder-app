@@ -9,6 +9,7 @@ import type { Project } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect } from 'react';
 import { Plus, Trash2, FolderGit2 } from 'lucide-react';
+import { deleteProject } from '../../services/resumeApi';
 
 // Array schema for form
 const FormSchema = z.object({
@@ -28,10 +29,11 @@ const FormSchema = z.object({
 type FormData = z.infer<typeof FormSchema>;
 
 export default function ProjectsSection() {
-  const { formData, updateFormData } = useResumeForm();
+  const { formData, updateFormData, resumeId } = useResumeForm();
 
-  const { register, control, setValue, watch } = useForm<FormData>({
+  const { register, control, setValue, getValues } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
+    mode: 'onChange', // Enable real-time updates
     defaultValues: {
       projects:
         formData.projects?.map(p => ({
@@ -46,8 +48,6 @@ export default function ProjectsSection() {
     name: 'projects',
   });
 
-  const watchedProjects = watch('projects');
-
   // Load data from API only once on mount
   useEffect(() => {
     if (formData.projects && formData.projects.length > 0) {
@@ -56,25 +56,51 @@ export default function ProjectsSection() {
         formData.projects.map(p => ({
           ...p,
           technologies: Array.isArray(p.technologies) ? p.technologies.join(', ') : '',
-        })) as any
+        })) as FormData['projects']
       );
     }
   }, []); // Only run once
 
-  useEffect(() => {
-    if (watchedProjects && watchedProjects.length > 0) {
-      // Convert string to array before saving
-      const converted = watchedProjects.map(p => ({
-        ...p,
-        technologies:
-          p.technologies
-            ?.split(',')
-            .map((t: string) => t.trim())
-            .filter(Boolean) || [],
-      }));
+  // Helper function to check if project is empty
+  const isProjectEmpty = (project: {
+    name?: string;
+    description?: string;
+    technologies?: string | string[];
+  }): boolean => {
+    return (
+      !project.name?.trim() &&
+      !project.description?.trim() &&
+      (!project.technologies ||
+        (typeof project.technologies === 'string' && !project.technologies.trim()) ||
+        (Array.isArray(project.technologies) && project.technologies.length === 0))
+    );
+  };
+
+  // Handle field change - update context immediately (same approach as PersonalInfo/Summary)
+  const handleFieldChange = () => {
+    const currentProjects = getValues('projects') || [];
+    if (currentProjects.length > 0) {
+      // Convert string to array before saving - filter out empty projects
+      const converted = currentProjects
+        .map(p => ({
+          ...p,
+          technologies:
+            typeof p.technologies === 'string'
+              ? p.technologies
+                  .split(',')
+                  .map((t: string) => t.trim())
+                  .filter(Boolean)
+              : Array.isArray(p.technologies)
+                ? p.technologies
+                : [],
+        }))
+        .filter(p => !isProjectEmpty(p)); // Filter out empty projects
       updateFormData('projects', converted as Project[]);
+    } else {
+      // Clear projects if array is empty
+      updateFormData('projects', []);
     }
-  }, [watchedProjects, updateFormData]);
+  };
 
   const handleAdd = () => {
     append({
@@ -85,6 +111,31 @@ export default function ProjectsSection() {
       date: '',
       order: fields.length,
     });
+    // Update context after adding new project
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
+  };
+
+  const handleRemove = async (index: number) => {
+    const projectToRemove = getValues(`projects.${index}`);
+
+    // If project has an ID, delete it from DB immediately
+    if (projectToRemove?.id && resumeId) {
+      try {
+        await deleteProject(resumeId, projectToRemove.id);
+      } catch (error) {
+        console.error('Failed to delete project from DB:', error);
+        // Continue with local removal even if DB deletion fails
+      }
+    }
+
+    // Remove from form
+    remove(index);
+    // Update context after removing project
+    setTimeout(() => {
+      handleFieldChange();
+    }, 0);
   };
 
   return (
@@ -106,6 +157,9 @@ export default function ProjectsSection() {
             <Plus size={20} />
             Add Project
           </button>
+          <p className="mt-4 text-sm text-gray-500">
+            Click the button above to start adding your projects
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -115,7 +169,7 @@ export default function ProjectsSection() {
                 <h3 className="text-lg font-semibold text-gray-900">Project {index + 1}</h3>
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => handleRemove(index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <Trash2 size={20} />
@@ -128,7 +182,7 @@ export default function ProjectsSection() {
                     Project Name
                   </label>
                   <input
-                    {...register(`projects.${index}.name`)}
+                    {...register(`projects.${index}.name`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., E-commerce Platform"
@@ -140,7 +194,7 @@ export default function ProjectsSection() {
                     Technologies
                   </label>
                   <input
-                    {...register(`projects.${index}.technologies`)}
+                    {...register(`projects.${index}.technologies`, { onChange: handleFieldChange })}
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="e.g., React, Node.js, PostgreSQL"
@@ -153,7 +207,7 @@ export default function ProjectsSection() {
                     Project URL
                   </label>
                   <input
-                    {...register(`projects.${index}.url`)}
+                    {...register(`projects.${index}.url`, { onChange: handleFieldChange })}
                     type="url"
                     className="w-full px-3 py-2 border rounded-lg"
                     placeholder="https://github.com/user/project"
@@ -163,7 +217,7 @@ export default function ProjectsSection() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                   <input
-                    {...register(`projects.${index}.date`)}
+                    {...register(`projects.${index}.date`, { onChange: handleFieldChange })}
                     type="month"
                     className="w-full px-3 py-2 border rounded-lg"
                   />
@@ -174,7 +228,7 @@ export default function ProjectsSection() {
                     Description
                   </label>
                   <textarea
-                    {...register(`projects.${index}.description`)}
+                    {...register(`projects.${index}.description`, { onChange: handleFieldChange })}
                     rows={4}
                     className="w-full px-3 py-2 border rounded-lg resize-none"
                     placeholder="Describe the project..."

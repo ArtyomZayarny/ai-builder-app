@@ -58,7 +58,8 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                     href={personalInfo.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
+                    className="underline hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     LinkedIn
                   </a>
@@ -68,7 +69,8 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                     href={personalInfo.portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
+                    className="underline hover:opacity-80 transition-opacity"
+                    style={{ color: `rgb(var(--resume-accent-color))` }}
                   >
                     Portfolio
                   </a>
@@ -81,7 +83,10 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Professional Summary */}
         {summary?.content && (
           <section className="mb-10">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-widest">
+            <h2
+              className="text-sm font-semibold mb-4 uppercase tracking-widest"
+              style={{ color: `rgb(var(--resume-accent-color))` }}
+            >
               About
             </h2>
             <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -93,7 +98,10 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Work Experience */}
         {experiences && experiences.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-sm font-semibold text-gray-900 mb-6 uppercase tracking-widest">
+            <h2
+              className="text-sm font-semibold mb-6 uppercase tracking-widest"
+              style={{ color: `rgb(var(--resume-accent-color))` }}
+            >
               Experience
             </h2>
             <div className="space-y-8">
@@ -125,7 +133,10 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Education */}
         {education && education.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-sm font-semibold text-gray-900 mb-6 uppercase tracking-widest">
+            <h2
+              className="text-sm font-semibold mb-6 uppercase tracking-widest"
+              style={{ color: `rgb(var(--resume-accent-color))` }}
+            >
               Education
             </h2>
             <div className="space-y-6">
@@ -151,7 +162,10 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Projects */}
         {projects && projects.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-sm font-semibold text-gray-900 mb-6 uppercase tracking-widest">
+            <h2
+              className="text-sm font-semibold mb-6 uppercase tracking-widest"
+              style={{ color: `rgb(var(--resume-accent-color))` }}
+            >
               Projects
             </h2>
             <div className="space-y-6">
@@ -175,7 +189,8 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                       href={project.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 underline inline-block mb-2"
+                      className="text-sm underline inline-block mb-2 hover:opacity-80 transition-opacity"
+                      style={{ color: `rgb(var(--resume-accent-color))` }}
                     >
                       {project.url}
                     </a>
@@ -192,7 +207,10 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Skills */}
         {skills && skills.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-sm font-semibold text-gray-900 mb-6 uppercase tracking-widest">
+            <h2
+              className="text-sm font-semibold mb-6 uppercase tracking-widest"
+              style={{ color: `rgb(var(--resume-accent-color))` }}
+            >
               Skills
             </h2>
             <div className="space-y-3">
