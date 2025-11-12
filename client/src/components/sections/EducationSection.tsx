@@ -50,12 +50,18 @@ export default function EducationSection() {
     name: 'education',
   });
 
-  // Load data from API only once on mount
+  // Load data from API or when imported from PDF
   useEffect(() => {
     if (formData.education && formData.education.length > 0) {
-      setValue('education', formData.education as FormData['education']);
+      // Check if form values differ from context data (to avoid unnecessary updates)
+      const currentFormValues = getValues('education');
+      const hasChanges = JSON.stringify(currentFormValues) !== JSON.stringify(formData.education);
+
+      if (hasChanges || !currentFormValues || currentFormValues.length === 0) {
+        setValue('education', formData.education as FormData['education']);
+      }
     }
-  }, []); // Only run once
+  }, [formData.education, setValue, getValues]); // React to context changes
 
   // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
   const handleFieldChange = () => {

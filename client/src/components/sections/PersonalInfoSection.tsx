@@ -26,22 +26,32 @@ export default function PersonalInfoSection() {
     defaultValues: formData.personalInfo || {},
   });
 
-  // Update form when data loads from API (only once)
+  // Update form when data loads from API or when imported from PDF
   useEffect(() => {
     if (formData.personalInfo && Object.keys(formData.personalInfo).length > 0) {
-      // Existing resume - populate form
-      Object.entries(formData.personalInfo).forEach(([key, value]) => {
-        setValue(key as keyof PersonalInfo, value);
-      });
-      // Mark as loaded after a small delay (to let setValue complete)
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 100);
+      // Check if form values differ from context data (to avoid unnecessary updates)
+      const currentFormValues = getValues();
+      const hasChanges = Object.keys(formData.personalInfo).some(
+        key =>
+          currentFormValues[key as keyof PersonalInfo] !==
+          formData.personalInfo?.[key as keyof typeof formData.personalInfo]
+      );
+
+      if (hasChanges || isInitialLoadRef.current) {
+        // Existing resume or imported data - populate form
+        Object.entries(formData.personalInfo).forEach(([key, value]) => {
+          setValue(key as keyof PersonalInfo, value);
+        });
+        // Mark as loaded after a small delay (to let setValue complete)
+        setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 100);
+      }
     } else {
       // New resume - enable immediate updates
       isInitialLoadRef.current = false;
     }
-  }, []); // Only run once on mount
+  }, [formData.personalInfo, setValue, getValues]); // React to context changes
 
   // Handle field change - update context with all form data
   const handleFieldChange = () => {
@@ -67,10 +77,10 @@ export default function PersonalInfoSection() {
           onPhotoUploaded={async url => {
             const currentValues = getValues();
             const updatedData = { ...currentValues, photoUrl: url };
-            
+
             // Update context immediately (for UI)
             updateFormData('personalInfo', updatedData);
-            
+
             // Save to database immediately (if resume exists)
             // This ensures photo is saved even if user reloads page before auto-save
             if (!isNewResume && resumeId) {
@@ -101,10 +111,10 @@ export default function PersonalInfoSection() {
           onPhotoRemoved={async () => {
             const currentValues = getValues();
             const updatedData = { ...currentValues, photoUrl: '' };
-            
+
             // Update context immediately (for UI)
             updateFormData('personalInfo', updatedData);
-            
+
             // Save to database immediately (if resume exists)
             if (!isNewResume && resumeId) {
               try {
@@ -123,7 +133,8 @@ export default function PersonalInfoSection() {
               } catch (error) {
                 console.error('Failed to remove photo:', error);
                 toast.error('Failed to remove photo', {
-                  description: 'Photo removed from UI but not saved. It will be saved automatically.',
+                  description:
+                    'Photo removed from UI but not saved. It will be saved automatically.',
                 });
               }
             }

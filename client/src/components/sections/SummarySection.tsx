@@ -35,20 +35,24 @@ export default function SummarySection() {
     setCharCount(summaryContent?.length || 0);
   }, [summaryContent]);
 
-  // Update form when data loads from API (only once)
+  // Update form when data loads from API or when imported from PDF
   useEffect(() => {
     if (formData.summary && formData.summary.content) {
-      // Existing resume - populate form
-      setValue('content', formData.summary.content);
-      // Mark as loaded after a small delay (to let setValue complete)
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 100);
+      // Check if form value differs from context data (to avoid unnecessary updates)
+      const currentFormValue = getValues('content');
+      if (currentFormValue !== formData.summary.content || isInitialLoadRef.current) {
+        // Existing resume or imported data - populate form
+        setValue('content', formData.summary.content);
+        // Mark as loaded after a small delay (to let setValue complete)
+        setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 100);
+      }
     } else {
       // New resume - enable immediate updates
       isInitialLoadRef.current = false;
     }
-  }, []); // Only run once on mount
+  }, [formData.summary, setValue, getValues]); // React to context changes
 
   // Handle field change - update context immediately
   const handleFieldChange = () => {

@@ -86,11 +86,45 @@ export const ResumeUpdateSchema = z
   })
   .openapi('ResumeUpdate');
 
+// For creating resume with all data at once (e.g., from PDF import)
+export const ResumeCreateWithDataSchema = z
+  .object({
+    title: z.string().min(1).max(255).openapi({
+      description: 'Resume title',
+      example: 'Software Engineer Resume',
+    }),
+    template: z
+      .enum(['classic', 'modern', 'creative', 'technical'])
+      .optional()
+      .default('classic')
+      .openapi({
+        description: 'Template name',
+        example: 'classic',
+      }),
+    accentColor: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/)
+      .optional()
+      .default('#3B82F6')
+      .openapi({
+        description: 'Hex color code for theme accent',
+        example: '#3B82F6',
+      }),
+    personalInfo: PersonalInfoSchema,
+    summary: SummarySchema.optional(),
+    experiences: z.array(ExperienceSchema).default([]),
+    education: z.array(EducationSchema).default([]),
+    projects: z.array(ProjectSchema).default([]),
+    skills: z.array(SkillSchema).default([]),
+  })
+  .openapi('ResumeCreateWithData');
+
 // TypeScript types
 export type ResumeMetadata = z.infer<typeof ResumeMetadataSchema>;
 export type Resume = z.infer<typeof ResumeSchema>;
 export type ResumeCreate = z.infer<typeof ResumeCreateSchema>;
 export type ResumeUpdate = z.infer<typeof ResumeUpdateSchema>;
+export type ResumeCreateWithData = z.infer<typeof ResumeCreateWithDataSchema>;
 
 // Template types
 export type ResumeTemplate = 'classic' | 'modern' | 'creative' | 'technical';

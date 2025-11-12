@@ -6,7 +6,7 @@
 /**
  * Validates if a URL is safe to use in href attributes
  * Only allows http://, https://, mailto:, and tel: protocols
- * 
+ *
  * @param url - The URL string to validate
  * @returns true if the URL is safe, false otherwise
  */
@@ -16,7 +16,7 @@ export function isValidUrl(url: string | null | undefined): boolean {
   }
 
   const trimmedUrl = url.trim().toLowerCase();
-  
+
   // Block javascript: protocol and data: URIs
   if (trimmedUrl.startsWith('javascript:') || trimmedUrl.startsWith('data:')) {
     return false;
@@ -34,16 +34,14 @@ export function isValidUrl(url: string | null | undefined): boolean {
       return true;
     }
     // Check if it starts with a safe protocol (case-insensitive)
-    return safeProtocols.some(protocol => 
-      trimmedUrl.startsWith(protocol)
-    );
+    return safeProtocols.some(protocol => trimmedUrl.startsWith(protocol));
   }
 }
 
 /**
  * Sanitizes a URL for safe use in href attributes
  * Returns the original URL if valid, or '#' if invalid
- * 
+ *
  * @param url - The URL string to sanitize
  * @returns Safe URL string or '#' as fallback
  */
@@ -63,7 +61,7 @@ export function sanitizeUrl(url: string | null | undefined): string {
 /**
  * Validates and returns a safe URL, or null if invalid
  * Useful when you want to conditionally render links
- * 
+ *
  * @param url - The URL string to validate
  * @returns Safe URL string or null if invalid
  */
@@ -78,4 +76,3 @@ export function getSafeUrl(url: string | null | undefined): string | null {
 
   return null;
 }
-

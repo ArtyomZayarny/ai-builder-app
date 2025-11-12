@@ -43,6 +43,29 @@ export interface ResumeCreateInput {
   accentColor?: string;
 }
 
+export interface ResumeCreateWithDataInput {
+  title: string;
+  template?: 'classic' | 'modern' | 'creative' | 'technical';
+  accentColor?: string;
+  personalInfo: {
+    name: string;
+    role: string;
+    email: string;
+    phone?: string;
+    location?: string;
+    linkedinUrl?: string;
+    portfolioUrl?: string;
+    photoUrl?: string;
+  };
+  summary?: {
+    content?: string;
+  };
+  experiences?: Experience[];
+  education?: Education[];
+  projects?: Project[];
+  skills?: Skill[];
+}
+
 export interface ResumeUpdateInput {
   title?: string;
   template?: 'classic' | 'modern' | 'creative' | 'technical';

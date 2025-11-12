@@ -56,9 +56,24 @@ export const parsePDF = [
         )
       );
     } catch (error) {
+      // Log error for debugging
+      console.error('PDF parsing failed:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to parse PDF';
+      if (error instanceof Error) {
+        if (error.message.includes('not available')) {
+          errorMessage = 'PDF parsing is not available in this environment. Please contact support.';
+        } else if (error.message.includes('empty') || error.message.includes('unreadable')) {
+          errorMessage = 'PDF appears to be empty or unreadable. Please ensure the PDF contains text.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       res.status(400).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to parse PDF',
+        error: errorMessage,
       });
     }
   }),

@@ -239,22 +239,28 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
   );
 
   // Set dirty state for a specific section
-  const setIsDirty = useCallback((section: keyof ResumeFormData | 'accentColor', dirty: boolean) => {
-    setIsDirtyState(prev => {
-      if (dirty) {
-        return { ...prev, [section]: true };
-      } else {
-        const newState = { ...prev };
-        delete newState[section];
-        return newState;
-      }
-    });
-  }, []);
+  const setIsDirty = useCallback(
+    (section: keyof ResumeFormData | 'accentColor', dirty: boolean) => {
+      setIsDirtyState(prev => {
+        if (dirty) {
+          return { ...prev, [section]: true };
+        } else {
+          const newState = { ...prev };
+          delete newState[section];
+          return newState;
+        }
+      });
+    },
+    []
+  );
 
   // Check if a specific section is dirty
-  const isSectionDirty = useCallback((section: keyof ResumeFormData | 'accentColor'): boolean => {
-    return isDirty[section] === true;
-  }, [isDirty]);
+  const isSectionDirty = useCallback(
+    (section: keyof ResumeFormData | 'accentColor'): boolean => {
+      return isDirty[section] === true;
+    },
+    [isDirty]
+  );
 
   // Check if any section is dirty
   const hasAnyDirty = useCallback((): boolean => {

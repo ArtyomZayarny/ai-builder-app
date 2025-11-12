@@ -5,7 +5,7 @@
 
 import pool from '../db/connection.js';
 import { NotFoundError } from '../utils/errors.js';
-import type { ResumeCreate, ResumeUpdate } from '@resume-builder/shared';
+import type { ResumeCreate, ResumeUpdate, ResumeCreateWithData } from '@resume-builder/shared';
 
 interface ResumeRow {
   id: number;
@@ -87,6 +87,223 @@ class ResumeService {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  /**
+   * Create resume with all data at once (for PDF import)
+   * Uses transaction to ensure atomicity
+   */
+  async createResumeWithData(data: ResumeCreateWithData): Promise<ResumeRow> {
+    console.log('🔧 [Service] Starting createResumeWithData');
+    console.log('🔧 [Service] Resume title:', data.title);
+    
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      console.log('✅ [Service] Transaction started');
+
+      // 1. Create resume
+      const resumeResult = await client.query<ResumeRow>(
+        `INSERT INTO resumes (title, template, accent_color) 
+         VALUES ($1, $2, $3) 
+         RETURNING *`,
+        [data.title, data.template || 'classic', data.accentColor || '#3B82F6']
+      );
+
+      const resume = resumeResult.rows[0];
+      const resumeId = resume.id;
+      console.log('✅ [Service] Resume created with ID:', resumeId);
+
+      // 2. Create personal info
+      await client.query(
+        `INSERT INTO personal_info (resume_id, name, role, email, phone, location, linkedin_url, portfolio_url, photo_url) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          resumeId,
+          data.personalInfo.name,
+          data.personalInfo.role,
+          data.personalInfo.email,
+          data.personalInfo.phone || null,
+          data.personalInfo.location || null,
+          data.personalInfo.linkedinUrl || null,
+          data.personalInfo.portfolioUrl || null,
+          data.personalInfo.photoUrl || null,
+        ]
+      );
+
+      // 3. Create summary (if provided)
+      if (data.summary?.content) {
+        await client.query(
+          `INSERT INTO summaries (resume_id, content) 
+           VALUES ($1, $2)`,
+          [resumeId, data.summary.content]
+        );
+      } else {
+        // Create empty summary
+        await client.query(
+          `INSERT INTO summaries (resume_id, content) 
+           VALUES ($1, $2)`,
+          [resumeId, '']
+        );
+      }
+
+      // 4. Create experiences
+      if (data.experiences && data.experiences.length > 0) {
+        console.log(`💼 [Service] Creating ${data.experiences.length} experiences`);
+        for (let i = 0; i < data.experiences.length; i++) {
+          const exp = data.experiences[i];
+          
+          // Normalize dates: convert empty strings to null
+          // Note: After migration 005, start_date can be NULL in DB
+          let startDate: string | null = exp.startDate || null;
+          let endDate: string | null = exp.endDate || null;
+          
+          if (startDate && (startDate === '' || startDate.trim() === '')) {
+            console.log(`⚠️ [Service] Experience ${i + 1}: startDate is empty string, setting to null`);
+            startDate = null;
+          }
+          
+          if (endDate && (endDate === '' || endDate.trim() === '')) {
+            console.log(`⚠️ [Service] Experience ${i + 1}: endDate is empty string, setting to null`);
+            endDate = null;
+          }
+          
+          console.log(`💼 [Service] Inserting experience ${i + 1}:`, {
+            company: exp.company,
+            role: exp.role,
+            startDate: startDate,
+            endDate: endDate,
+            isCurrent: exp.isCurrent || false,
+            startDateType: typeof startDate,
+            endDateType: typeof endDate,
+          });
+          
+          try {
+            await client.query(
+              `INSERT INTO experiences (resume_id, company, role, location, start_date, end_date, is_current, description, order_index)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+              [
+                resumeId,
+                exp.company || null,
+                exp.role || null,
+                exp.location || null,
+                startDate,
+                endDate,
+                exp.isCurrent || false,
+                exp.description || null,
+                exp.order ?? i,
+              ]
+            );
+            console.log(`✅ [Service] Experience ${i + 1} inserted successfully`);
+          } catch (error) {
+            console.error(`❌ [Service] Error inserting experience ${i + 1}:`, error);
+            console.error(`❌ [Service] Experience data:`, JSON.stringify(exp, null, 2));
+            throw error;
+          }
+        }
+      }
+
+      // 5. Create education
+      if (data.education && data.education.length > 0) {
+        console.log(`🎓 [Service] Creating ${data.education.length} education entries`);
+        for (let i = 0; i < data.education.length; i++) {
+          const edu = data.education[i];
+          
+          // Normalize dates: convert empty strings to null
+          // Note: graduationDate can be NULL in DB
+          let graduationDate: string | null = edu.graduationDate || null;
+          
+          if (graduationDate && (graduationDate === '' || graduationDate.trim() === '')) {
+            console.log(`⚠️ [Service] Education ${i + 1}: graduationDate is empty string, converting to null`);
+            graduationDate = null;
+          }
+          
+          console.log(`🎓 [Service] Inserting education ${i + 1}:`, {
+            institution: edu.institution,
+            degree: edu.degree,
+            graduationDate: graduationDate,
+            graduationDateType: typeof graduationDate,
+          });
+          
+          try {
+            await client.query(
+              `INSERT INTO education (resume_id, institution, degree, field, location, graduation_date, gpa, description, order_index)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+              [
+                resumeId,
+                edu.institution,
+                edu.degree,
+                edu.field || null,
+                edu.location || null,
+                graduationDate,
+                edu.gpa || null,
+                edu.description || null,
+                edu.order ?? i,
+              ]
+            );
+            console.log(`✅ [Service] Education ${i + 1} inserted successfully`);
+          } catch (error) {
+            console.error(`❌ [Service] Error inserting education ${i + 1}:`, error);
+            console.error(`❌ [Service] Education data:`, JSON.stringify(edu, null, 2));
+            throw error;
+          }
+        }
+      }
+
+      // 6. Create projects
+      if (data.projects && data.projects.length > 0) {
+        for (let i = 0; i < data.projects.length; i++) {
+          const project = data.projects[i];
+          await client.query(
+            `INSERT INTO projects (resume_id, name, description, technologies, url, date, order_index)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+              resumeId,
+              project.name,
+              project.description || null,
+              project.technologies || [],
+              project.url || null,
+              project.date || null,
+              project.order ?? i,
+            ]
+          );
+        }
+      }
+
+      // 7. Create skills
+      if (data.skills && data.skills.length > 0) {
+        console.log(`🛠️ [Service] Creating ${data.skills.length} skills`);
+        for (let i = 0; i < data.skills.length; i++) {
+          const skill = data.skills[i];
+          await client.query(
+            `INSERT INTO skills (resume_id, name, category, order_index)
+             VALUES ($1, $2, $3, $4)`,
+            [
+              resumeId,
+              skill.name,
+              skill.category || null,
+              skill.order ?? i,
+            ]
+          );
+        }
+        console.log(`✅ [Service] All skills inserted successfully`);
+      }
+
+      await client.query('COMMIT');
+      console.log('✅ [Service] Transaction committed successfully');
+      return resume;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('❌ [Service] Transaction rolled back due to error:', error);
+      if (error instanceof Error) {
+        console.error('❌ [Service] Error message:', error.message);
+        console.error('❌ [Service] Error stack:', error.stack);
+      }
+      throw error;
+    } finally {
+      client.release();
+      console.log('🔓 [Service] Database client released');
     }
   }
 
@@ -239,6 +456,9 @@ class ResumeService {
     // First check if resume exists
     await this.getResumeById(resumeId);
 
+    console.log('💾 [Server] Updating summary for resume ID:', resumeId);
+    console.log('📦 [Server] Summary content length:', data.content?.length || 0);
+
     const result = await pool.query(
       `UPDATE summaries 
        SET content = $1
@@ -246,6 +466,8 @@ class ResumeService {
        RETURNING *`,
       [data.content, resumeId]
     );
+
+    console.log('✅ [Server] Summary updated successfully');
 
     if (result.rows.length === 0) {
       throw new NotFoundError('Summary');

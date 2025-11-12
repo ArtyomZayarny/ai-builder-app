@@ -4,7 +4,13 @@
  */
 
 import { BACKEND_URL } from '../config';
-import type { Resume, ResumeCreateInput, ResumeUpdateInput, ApiResponse } from '../types/resume';
+import type {
+  Resume,
+  ResumeCreateInput,
+  ResumeCreateWithDataInput,
+  ResumeUpdateInput,
+  ApiResponse,
+} from '../types/resume';
 
 const API_BASE = `${BACKEND_URL}/api/resumes`;
 
@@ -45,12 +51,38 @@ export const createResume = async (resumeData: ResumeCreateInput): Promise<Resum
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(resumeData),
   });
 
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to create resume');
+  }
+
+  const data: ApiResponse<Resume> = await response.json();
+  return data.data;
+};
+
+/**
+ * Create resume with all data at once (for PDF import)
+ * Uses a single request with transaction on backend
+ */
+export const createResumeFromPDF = async (
+  resumeData: ResumeCreateWithDataInput
+): Promise<Resume> => {
+  const response = await fetch(`${API_BASE}/from-pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(resumeData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create resume from PDF');
   }
 
   const data: ApiResponse<Resume> = await response.json();
@@ -157,6 +189,7 @@ export const saveSummary = async (
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
 
@@ -208,6 +241,7 @@ export const saveExperiences = async (
       await fetch(`${API_BASE}/${resumeId}/experiences/${exp.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(exp),
       });
     } else {
@@ -215,6 +249,7 @@ export const saveExperiences = async (
       await fetch(`${API_BASE}/${resumeId}/experiences`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(exp),
       });
     }
@@ -237,12 +272,14 @@ export const saveEducation = async (resumeId: number | string, education: any[])
       await fetch(`${API_BASE}/${resumeId}/education/${edu.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(edu),
       });
     } else {
       await fetch(`${API_BASE}/${resumeId}/education`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(edu),
       });
     }
@@ -297,6 +334,7 @@ export const saveProjects = async (
     if (!currentProjectIds.has(existingProject.id)) {
       await fetch(`${API_BASE}/${resumeId}/projects/${existingProject.id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
     }
   }
@@ -309,25 +347,24 @@ export const saveProjects = async (
       if (project.id) {
         await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
           method: 'DELETE',
+          credentials: 'include',
         });
       }
       continue;
     }
 
     if (project.id) {
-      const response = await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
+      await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(project),
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || `Failed to update project ${project.id}`);
-      }
     } else {
       await fetch(`${API_BASE}/${resumeId}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(project),
       });
     }
@@ -363,12 +400,14 @@ export const saveSkills = async (resumeId: number | string, skills: any[]): Prom
       await fetch(`${API_BASE}/${resumeId}/skills/${skill.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(skill),
       });
     } else {
       await fetch(`${API_BASE}/${resumeId}/skills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(skill),
       });
     }

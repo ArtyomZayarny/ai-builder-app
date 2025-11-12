@@ -46,12 +46,18 @@ export default function SkillsSection() {
     name: 'skills',
   });
 
-  // Load data from API only once on mount
+  // Load data from API or when imported from PDF
   useEffect(() => {
     if (formData.skills && formData.skills.length > 0) {
-      setValue('skills', formData.skills as FormData['skills']);
+      // Check if form values differ from context data (to avoid unnecessary updates)
+      const currentFormValues = getValues('skills');
+      const hasChanges = JSON.stringify(currentFormValues) !== JSON.stringify(formData.skills);
+
+      if (hasChanges || !currentFormValues || currentFormValues.length === 0) {
+        setValue('skills', formData.skills as FormData['skills']);
+      }
     }
-  }, []); // Only run once
+  }, [formData.skills, setValue, getValues]); // React to context changes
 
   // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
   const handleFieldChange = () => {

@@ -8,6 +8,7 @@ import { validate } from '../middleware/validate.js';
 import { 
   ResumeCreateSchema, 
   ResumeUpdateSchema,
+  ResumeCreateWithDataSchema,
   PersonalInfoUpdateSchema,
   SummarySchema,
   SkillCreateSchema,
@@ -26,6 +27,7 @@ const router = express.Router();
 router.get('/', resumeController.getAllResumes);
 router.get('/:id', resumeController.getResumeById);
 router.post('/', validate(ResumeCreateSchema), resumeController.createResume);
+router.post('/from-pdf', validate(ResumeCreateWithDataSchema), resumeController.createResumeFromPDF);
 router.put('/:id', validate(ResumeUpdateSchema), resumeController.updateResume);
 router.delete('/:id', resumeController.deleteResume);
 

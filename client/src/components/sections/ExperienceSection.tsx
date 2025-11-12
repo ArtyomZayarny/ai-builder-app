@@ -58,12 +58,18 @@ export default function ExperienceSection() {
   // Watch for isCurrent changes to show/hide endDate
   const watchedExperiences = watch('experiences');
 
-  // Load data from API only once on mount
+  // Load data from API or when imported from PDF
   useEffect(() => {
     if (formData.experiences && formData.experiences.length > 0) {
-      setValue('experiences', formData.experiences as FormData['experiences']);
+      // Check if form values differ from context data (to avoid unnecessary updates)
+      const currentFormValues = getValues('experiences');
+      const hasChanges = JSON.stringify(currentFormValues) !== JSON.stringify(formData.experiences);
+
+      if (hasChanges || !currentFormValues || currentFormValues.length === 0) {
+        setValue('experiences', formData.experiences as FormData['experiences']);
+      }
     }
-  }, []); // Only run once
+  }, [formData.experiences, setValue, getValues]); // React to context changes
 
   // Handle field change - update context immediately (same approach as PersonalInfo/Summary/Projects)
   const handleFieldChange = () => {

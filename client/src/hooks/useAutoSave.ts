@@ -3,7 +3,7 @@
  * Handles automatic saving of resume data with debouncing and retry logic
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import {
   savePersonalInfo,
   saveSummary,
@@ -61,7 +61,7 @@ export function useAutoSave({
   setIsDirty,
   onSaveSuccess,
   onSaveError,
-  saveInterval = 30000, // 30 seconds
+  saveInterval: _saveInterval = 30000, // 30 seconds
   maxRetries = 3,
 }: UseAutoSaveOptions) {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,7 +72,7 @@ export function useAutoSave({
   const saveAllData = useCallback(async (): Promise<void> => {
     // Check if any section is dirty
     const hasDirtySections = Object.values(isDirty).some(dirty => dirty === true);
-    
+
     if (!resumeId || isNewResume || !hasDirtySections || isSavingRef.current) {
       return;
     }

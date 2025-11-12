@@ -48,18 +48,22 @@ export default function ProjectsSection() {
     name: 'projects',
   });
 
-  // Load data from API only once on mount
+  // Load data from API or when imported from PDF
   useEffect(() => {
     if (formData.projects && formData.projects.length > 0) {
-      setValue(
-        'projects',
-        formData.projects.map(p => ({
-          ...p,
-          technologies: Array.isArray(p.technologies) ? p.technologies.join(', ') : '',
-        })) as FormData['projects']
-      );
+      // Check if form values differ from context data (to avoid unnecessary updates)
+      const currentFormValues = getValues('projects');
+      const normalizedProjects = formData.projects.map(p => ({
+        ...p,
+        technologies: Array.isArray(p.technologies) ? p.technologies.join(', ') : '',
+      }));
+      const hasChanges = JSON.stringify(currentFormValues) !== JSON.stringify(normalizedProjects);
+
+      if (hasChanges || !currentFormValues || currentFormValues.length === 0) {
+        setValue('projects', normalizedProjects as FormData['projects']);
+      }
     }
-  }, []); // Only run once
+  }, [formData.projects, setValue, getValues]); // React to context changes
 
   // Helper function to check if project is empty
   const isProjectEmpty = (project: {

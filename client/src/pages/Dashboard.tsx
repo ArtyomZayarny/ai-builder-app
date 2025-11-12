@@ -8,7 +8,12 @@ import { Plus, FileText, AlertCircle, Loader2, LogOut, User, Upload } from 'luci
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
 import PDFUploadModal from '../components/PDFUploadModal';
-import { getAllResumes, deleteResume, duplicateResume, createResume } from '../services/resumeApi';
+import {
+  getAllResumes,
+  deleteResume,
+  duplicateResume,
+  createResumeFromPDF,
+} from '../services/resumeApi';
 import { useAuth } from '../contexts/AuthContext';
 import type { Resume } from '../types/resume';
 import type { ParsedResumeData } from '../services/pdfApi';
@@ -104,16 +109,54 @@ export default function Dashboard() {
 
   const handlePDFImport = async (parsedData: ParsedResumeData) => {
     setShowPDFModal(false);
-    // Create a new resume entry in the database
-    const newResume = await createResume({
-      title: parsedData.personalInfo?.name
-        ? `${parsedData.personalInfo.name}'s Resume (Imported)`
-        : 'Imported Resume',
-    });
 
-    // Store parsed data in localStorage and redirect to editor
-    localStorage.setItem(`pdf-import-${newResume.id}`, JSON.stringify(parsedData));
-    navigate(`/resume/${newResume.id}?import=pdf`);
+    try {
+      // Validate required fields
+      if (
+        !parsedData.personalInfo?.name ||
+        !parsedData.personalInfo?.email ||
+        !parsedData.personalInfo?.role
+      ) {
+        throw new Error('Missing required fields: name, email, and role are required');
+      }
+
+      // Prepare data for createResumeFromPDF
+      const resumeData = {
+        title: parsedData.personalInfo.name
+          ? `${parsedData.personalInfo.name}'s Resume (Imported)`
+          : 'Imported Resume',
+        template: 'classic' as const,
+        accentColor: '#3B82F6',
+        personalInfo: {
+          name: parsedData.personalInfo.name,
+          role: parsedData.personalInfo.role,
+          email: parsedData.personalInfo.email,
+          phone: parsedData.personalInfo.phone || '',
+          location: parsedData.personalInfo.location || '',
+          linkedinUrl: parsedData.personalInfo.linkedinUrl || '',
+          portfolioUrl: parsedData.personalInfo.portfolioUrl || '',
+          photoUrl: '',
+        },
+        summary: parsedData.summary?.content ? { content: parsedData.summary.content } : undefined,
+        experiences: parsedData.experiences || [],
+        education: parsedData.education || [],
+        projects: (parsedData.projects || []).map(p => ({
+          ...p,
+          technologies: p.technologies || [],
+        })),
+        skills: parsedData.skills || [],
+      };
+
+      // Create resume with all data in a single request (transaction on backend)
+      const newResume = await createResumeFromPDF(resumeData);
+
+      // Redirect to the newly created resume
+      navigate(`/resume/${newResume.id}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to import PDF';
+      setError(errorMessage);
+      console.error('Error importing PDF:', error);
+    }
   };
 
   // Loading state
@@ -159,11 +202,32 @@ export default function Dashboard() {
             Build a professional resume in minutes with our easy-to-use builder. Choose from
             multiple templates and customize to your needs.
           </p>
-          <button onClick={handleCreateResume} className="btn-primary text-lg px-8 py-4 shadow-lg">
-            <Plus size={24} />
-            <span className="ml-2">Create Resume</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={handleCreateResume}
+              className="btn-primary text-lg px-8 py-4 shadow-lg"
+            >
+              <Plus size={24} />
+              <span className="ml-2">Create Resume</span>
+            </button>
+            <div className="flex items-center gap-2 text-gray-500">
+              <span className="hidden sm:inline">or</span>
+              <button
+                onClick={() => setShowPDFModal(true)}
+                className="btn-secondary text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Upload size={24} />
+                <span className="ml-2">Upload PDF</span>
+              </button>
+            </div>
+          </div>
         </div>
+
+        <PDFUploadModal
+          isOpen={showPDFModal}
+          onClose={() => setShowPDFModal(false)}
+          onImport={handlePDFImport}
+        />
       </div>
     );
   }

@@ -37,6 +37,49 @@ class ResumeController {
   });
 
   /**
+   * Create resume with all data at once (for PDF import)
+   * POST /api/resumes/from-pdf
+   */
+  createResumeFromPDF = asyncHandler(async (req: Request, res: Response) => {
+    console.log('📥 [Controller] Received request to create resume from PDF');
+    console.log('📦 [Controller] Request body keys:', Object.keys(req.body));
+    console.log('📦 [Controller] Personal info:', JSON.stringify(req.body.personalInfo, null, 2));
+    
+    if (req.body.experiences) {
+      console.log('💼 [Controller] Experiences count:', req.body.experiences.length);
+      req.body.experiences.forEach((exp: any, index: number) => {
+        console.log(`💼 [Controller] Experience ${index + 1}:`, {
+          company: exp.company,
+          role: exp.role,
+          startDate: exp.startDate,
+          endDate: exp.endDate,
+          isCurrent: exp.isCurrent,
+          startDateType: typeof exp.startDate,
+          endDateType: typeof exp.endDate,
+          startDateLength: exp.startDate?.length,
+          endDateLength: exp.endDate?.length,
+        });
+      });
+    }
+    
+    if (req.body.education) {
+      console.log('🎓 [Controller] Education count:', req.body.education.length);
+      req.body.education.forEach((edu: any, index: number) => {
+        console.log(`🎓 [Controller] Education ${index + 1}:`, {
+          institution: edu.institution,
+          degree: edu.degree,
+          graduationDate: edu.graduationDate,
+          graduationDateType: typeof edu.graduationDate,
+          graduationDateLength: edu.graduationDate?.length,
+        });
+      });
+    }
+    
+    const resume = await resumeService.createResumeWithData(req.body);
+    res.status(201).json(successResponse(resume, 'Resume created from PDF successfully'));
+  });
+
+  /**
    * Update resume
    * PUT /api/resumes/:id
    */
