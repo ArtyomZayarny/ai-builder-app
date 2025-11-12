@@ -1,7 +1,7 @@
 /**
  * Resume Editor Layout
  * Main layout with sidebar navigation, content area, and optional preview panel
- * Auto-saves changes - no manual save button needed!
+ * Changes are saved when switching sections
  */
 
 import { ReactNode, useState } from 'react';

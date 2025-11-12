@@ -1,6 +1,6 @@
 /**
  * Resume Editor Page
- * Auto-saves changes every 30 seconds when form is dirty
+ * Saves changes manually when switching sections
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -40,6 +40,8 @@ function ResumeEditorContent() {
   const {
     isDirty,
     setIsDirty,
+    isSectionDirty,
+    hasAnyDirty,
     formData,
     resumeId,
     isNewResume,
@@ -68,11 +70,24 @@ function ResumeEditorContent() {
     },
   });
 
-  // Handle section change with auto-save if form is dirty
+  // Handle section change with auto-save if current section is dirty
   const handleSectionChange = useCallback(
     async (newSection: string) => {
-      // If form is dirty and resume exists, save before switching sections
-      if (isDirty && !isNewResume && resumeId) {
+      // Map section names to form data keys
+      const sectionToKey: Record<string, 'personalInfo' | 'summary' | 'experiences' | 'education' | 'projects' | 'skills' | 'selectedTemplate' | 'accentColor'> = {
+        'personal-info': 'personalInfo',
+        'summary': 'summary',
+        'experience': 'experiences',
+        'education': 'education',
+        'projects': 'projects',
+        'skills': 'skills',
+        'templates': 'selectedTemplate',
+      };
+
+      const currentSectionKey = sectionToKey[currentSection];
+      
+      // If current section is dirty and resume exists, save before switching sections
+      if (currentSectionKey && isSectionDirty(currentSectionKey) && !isNewResume && resumeId) {
         try {
           await manualSave();
         } catch (error) {
@@ -82,7 +97,7 @@ function ResumeEditorContent() {
       }
       setCurrentSectionState(newSection);
     },
-    [isDirty, isNewResume, resumeId, manualSave]
+    [currentSection, isSectionDirty, isNewResume, resumeId, manualSave, formData]
   );
 
   // Handle PDF import
@@ -162,16 +177,15 @@ function ResumeEditorContent() {
   );
 
   // Save all form data to backend (called before PDF download or navigation)
-  // Note: Auto-save handles regular saves, this is for manual saves before critical actions
+  // Manual save is triggered when switching sections or before critical actions
   const saveAllData = useCallback(async () => {
-    // Use manual save from auto-save hook
     await manualSave();
   }, [manualSave]);
 
   // Warn user before leaving with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty && !isNewResume) {
+      if (hasAnyDirty() && !isNewResume) {
         e.preventDefault();
         e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
       }
@@ -179,7 +193,7 @@ function ResumeEditorContent() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty, isNewResume]);
+  }, [hasAnyDirty, isNewResume]);
 
   // Show loading state - AFTER all hooks!
   if (isLoading) {
@@ -289,7 +303,7 @@ function ResumeEditorContent() {
   const handleDownloadPDF = async () => {
     try {
       // Save changes silently if resume exists and has unsaved changes
-      if (!isNewResume && isDirty && resumeId) {
+      if (!isNewResume && hasAnyDirty() && resumeId) {
         await saveAllData();
       }
 
@@ -393,7 +407,7 @@ function ResumeEditorContent() {
       onDownloadPDF={handleDownloadPDF}
       onDashboardClick={handleDashboardClick}
       saveStatus={saveStatus}
-      isDirty={isDirty}
+      isDirty={hasAnyDirty()}
     >
       {renderSection()}
     </ResumeEditorLayout>

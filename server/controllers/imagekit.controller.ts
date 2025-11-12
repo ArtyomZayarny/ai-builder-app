@@ -51,22 +51,31 @@ export const uploadProfilePhoto = [
     }
 
     const fileName = req.file.originalname || `photo-${Date.now()}.${req.file.mimetype.split('/')[1]}`;
+    
+    // Get removeBackground parameter from request body
+    const removeBackground = req.body.removeBackground === 'true' || req.body.removeBackground === true;
 
-    const result = await uploadImage(
-      req.file.buffer,
-      fileName,
-      'resume-photos'
-    );
+    try {
+      const result = await uploadImage(
+        req.file.buffer,
+        fileName,
+        'resume-photos',
+        removeBackground
+      );
 
-    res.json(
-      successResponse(
-        {
-          url: result.url,
-          fileId: result.fileId,
-        },
-        'Photo uploaded successfully'
-      )
-    );
+      res.json(
+        successResponse(
+          {
+            url: result.url,
+            fileId: result.fileId,
+          },
+          'Photo uploaded successfully'
+        )
+      );
+    } catch (error) {
+      console.error('Photo upload failed:', error);
+      throw error; // Let errorHandler middleware handle it
+    }
   }),
 ];
 

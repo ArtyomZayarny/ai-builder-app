@@ -37,14 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      }
+      // Check authentication via HttpOnly cookie (secure)
+      // If cookie exists and is valid, getCurrentUser will succeed
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
     } catch {
       // Not authenticated or token expired
-      localStorage.removeItem('auth_token');
+      // Cookie is cleared by server or doesn't exist
       setUser(null);
     } finally {
       setLoading(false);

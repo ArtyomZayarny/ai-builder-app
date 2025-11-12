@@ -135,6 +135,7 @@ export const savePersonalInfo = async (
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Send HttpOnly cookie for authentication
     body: JSON.stringify(data),
   });
 
@@ -314,11 +315,15 @@ export const saveProjects = async (
     }
 
     if (project.id) {
-      await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
+      const response = await fetch(`${API_BASE}/${resumeId}/projects/${project.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(project),
       });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Failed to update project ${project.id}`);
+      }
     } else {
       await fetch(`${API_BASE}/${resumeId}/projects`, {
         method: 'POST',

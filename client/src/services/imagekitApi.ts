@@ -3,7 +3,9 @@
  * Client-side API for image uploads
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+import { BACKEND_URL } from '../config';
+
+const API_BASE_URL = `${BACKEND_URL}/api`;
 
 export interface UploadPhotoResponse {
   url: string;
@@ -21,8 +23,11 @@ export async function uploadProfilePhoto(
   formData.append('photo', file);
   formData.append('removeBackground', removeBackground.toString());
 
+  // Authentication via HttpOnly cookie (secure, not accessible to JavaScript)
+  // Don't set Content-Type for FormData - browser will set it with boundary
   const response = await fetch(`${API_BASE_URL}/imagekit/upload`, {
     method: 'POST',
+    credentials: 'include', // HttpOnly cookie is sent automatically
     body: formData,
   });
 

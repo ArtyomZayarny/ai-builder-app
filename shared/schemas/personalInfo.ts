@@ -20,11 +20,33 @@ export const PersonalInfoSchema = z.object({
     .url('Invalid portfolio URL')
     .optional()
     .or(z.literal('')),
-  photoUrl: z.string().url('Invalid photo URL').optional().or(z.literal('')),
+  photoUrl: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => {
+        // If empty string or undefined, it's valid (will be handled by service)
+        if (!val || val === '') return true;
+        // If URL contains ImageKit domain, it's valid
+        if (typeof val === 'string' && val.includes('ik.imagekit.io')) return true;
+        // Otherwise, try to validate as URL
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: 'Invalid photo URL. Must be a valid URL or ImageKit URL.',
+      }
+    ),
 });
 
 // For database updates (all fields optional)
-export const PersonalInfoUpdateSchema = PersonalInfoSchema.partial();
+// Use passthrough to preserve fields that don't pass validation (like photoUrl)
+export const PersonalInfoUpdateSchema = PersonalInfoSchema.partial().passthrough();
 
 // TypeScript types
 export type PersonalInfo = z.infer<typeof PersonalInfoSchema>;

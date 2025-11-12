@@ -1,6 +1,6 @@
 /**
  * Save Status Indicator Component
- * Visual indicator for auto-save status (saving, saved, error)
+ * Visual indicator for save status (saving, saved, error)
  */
 
 import { Loader2, Check, AlertCircle } from 'lucide-react';

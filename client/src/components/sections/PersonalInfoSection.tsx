@@ -8,10 +8,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonalInfoSchema, type PersonalInfo } from '@resume-builder/shared';
 import { useResumeForm } from '../../contexts/ResumeFormContext';
 import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import { savePersonalInfo } from '../../services/resumeApi';
 import ProfilePhotoUpload from '../ProfilePhotoUpload';
 
 export default function PersonalInfoSection() {
-  const { formData, updateFormData } = useResumeForm();
+  const { formData, updateFormData, resumeId, isNewResume, setIsDirty } = useResumeForm();
   const isInitialLoadRef = useRef(true); // Track if this is initial data load
 
   const {
@@ -62,13 +64,69 @@ export default function PersonalInfoSection() {
         {/* Profile Photo Upload */}
         <ProfilePhotoUpload
           currentPhotoUrl={formData.personalInfo?.photoUrl}
-          onPhotoUploaded={url => {
+          onPhotoUploaded={async url => {
             const currentValues = getValues();
-            updateFormData('personalInfo', { ...currentValues, photoUrl: url });
+            const updatedData = { ...currentValues, photoUrl: url };
+            
+            // Update context immediately (for UI)
+            updateFormData('personalInfo', updatedData);
+            
+            // Save to database immediately (if resume exists)
+            // This ensures photo is saved even if user reloads page before auto-save
+            if (!isNewResume && resumeId) {
+              try {
+                const saveData = {
+                  name: updatedData.name || '',
+                  role: updatedData.role || '',
+                  email: updatedData.email || '',
+                  phone: updatedData.phone || '',
+                  location: updatedData.location || '',
+                  linkedinUrl: updatedData.linkedinUrl || '',
+                  portfolioUrl: updatedData.portfolioUrl || '',
+                  photoUrl: url,
+                };
+                await savePersonalInfo(resumeId, saveData);
+                // Mark as clean to prevent auto-save from triggering
+                // We already saved personal-info manually, so no need for auto-save
+                setIsDirty('personalInfo', false);
+                // Photo is now saved in database - safe to reload page
+              } catch (error) {
+                console.error('Failed to save photo:', error);
+                toast.error('Failed to save photo', {
+                  description: 'Photo uploaded but not saved. It will be saved automatically.',
+                });
+              }
+            }
           }}
-          onPhotoRemoved={() => {
+          onPhotoRemoved={async () => {
             const currentValues = getValues();
-            updateFormData('personalInfo', { ...currentValues, photoUrl: '' });
+            const updatedData = { ...currentValues, photoUrl: '' };
+            
+            // Update context immediately (for UI)
+            updateFormData('personalInfo', updatedData);
+            
+            // Save to database immediately (if resume exists)
+            if (!isNewResume && resumeId) {
+              try {
+                await savePersonalInfo(resumeId, {
+                  name: updatedData.name || '',
+                  role: updatedData.role || '',
+                  email: updatedData.email || '',
+                  phone: updatedData.phone || '',
+                  location: updatedData.location || '',
+                  linkedinUrl: updatedData.linkedinUrl || '',
+                  portfolioUrl: updatedData.portfolioUrl || '',
+                  photoUrl: '',
+                });
+                // Mark as clean to prevent auto-save from triggering
+                setIsDirty('personalInfo', false);
+              } catch (error) {
+                console.error('Failed to remove photo:', error);
+                toast.error('Failed to remove photo', {
+                  description: 'Photo removed from UI but not saved. It will be saved automatically.',
+                });
+              }
+            }
           }}
         />
 

@@ -155,30 +155,44 @@ class ResumeService {
     // First check if resume exists
     await this.getResumeById(resumeId);
 
-    const result = await pool.query(
-      `UPDATE personal_info 
+    // Handle photoUrl: if explicitly provided (even empty string), use it; otherwise keep existing
+    // Important: empty string should clear the photo, undefined should keep existing
+    const photoUrlProvided = data.photoUrl !== undefined;
+    // If provided, use the value (empty string becomes null for DB)
+    // If not provided, we'll skip updating this field
+    const photoUrlValue = photoUrlProvided ? data.photoUrl || null : null;
+
+    // Build SQL conditionally: only update photo_url if it was provided
+    let sql = `UPDATE personal_info 
        SET name = COALESCE($1, name),
            role = COALESCE($2, role),
            email = COALESCE($3, email),
            phone = COALESCE($4, phone),
            location = COALESCE($5, location),
            linkedin_url = COALESCE($6, linkedin_url),
-           portfolio_url = COALESCE($7, portfolio_url),
-           photo_url = COALESCE($8, photo_url)
-       WHERE resume_id = $9 
-       RETURNING *`,
-      [
-        data.name,
-        data.role,
-        data.email,
-        data.phone || null,
-        data.location || null,
-        data.linkedinUrl || null,
-        data.portfolioUrl || null,
-        data.photoUrl || null,
-        resumeId,
-      ]
-    );
+           portfolio_url = COALESCE($7, portfolio_url)`;
+
+    const params: any[] = [
+      data.name,
+      data.role,
+      data.email,
+      data.phone || null,
+      data.location || null,
+      data.linkedinUrl || null,
+      data.portfolioUrl || null,
+    ];
+
+    if (photoUrlProvided) {
+      sql += `, photo_url = $8`;
+      params.push(photoUrlValue);
+      sql += ` WHERE resume_id = $9 RETURNING *`;
+      params.push(resumeId);
+    } else {
+      sql += ` WHERE resume_id = $8 RETURNING *`;
+      params.push(resumeId);
+    }
+
+    const result = await pool.query(sql, params);
 
     if (result.rows.length === 0) {
       throw new NotFoundError('Personal Info');
@@ -633,14 +647,14 @@ class ResumeService {
    */
   async toggleVisibility(
     id: number | string,
-    isPublic: boolean,
+    isPublic: boolean
   ): Promise<{ is_public: boolean; public_id: string }> {
     const result = await pool.query<{ is_public: boolean; public_id: string }>(
       `UPDATE resumes 
        SET is_public = $1, updated_at = NOW() 
        WHERE id = $2 
        RETURNING is_public, public_id`,
-      [isPublic, id],
+      [isPublic, id]
     );
 
     if (result.rows.length === 0) {
@@ -659,7 +673,7 @@ class ResumeService {
       `SELECT id, title, template, accent_color, is_public, created_at, updated_at 
        FROM resumes 
        WHERE public_id = $1 AND is_public = true`,
-      [publicId],
+      [publicId]
     );
 
     if (resumeResult.rows.length === 0) {
@@ -674,11 +688,11 @@ class ResumeService {
       pool.query(`SELECT content FROM summaries WHERE resume_id = $1`, [resume.id]),
       pool.query(
         `SELECT * FROM experiences WHERE resume_id = $1 ORDER BY order_index, start_date DESC`,
-        [resume.id],
+        [resume.id]
       ),
       pool.query(
         `SELECT * FROM education WHERE resume_id = $1 ORDER BY order_index, graduation_date DESC`,
-        [resume.id],
+        [resume.id]
       ),
       pool.query(`SELECT * FROM projects WHERE resume_id = $1 ORDER BY order_index, date DESC`, [
         resume.id,
@@ -701,4 +715,3 @@ class ResumeService {
 }
 
 export default new ResumeService();
-

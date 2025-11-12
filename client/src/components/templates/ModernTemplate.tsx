@@ -4,6 +4,7 @@
  */
 
 import { ResumeData } from '../../types/resume';
+import { getSafeUrl } from '../../utils/urlValidation';
 
 interface ModernTemplateProps {
   data: ResumeData;
@@ -51,11 +52,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
             </div>
 
             {/* Links */}
-            {(personalInfo.linkedinUrl || personalInfo.portfolioUrl) && (
+            {(getSafeUrl(personalInfo.linkedinUrl) || getSafeUrl(personalInfo.portfolioUrl)) && (
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm mt-3">
-                {personalInfo.linkedinUrl && (
+                {getSafeUrl(personalInfo.linkedinUrl) && (
                   <a
-                    href={personalInfo.linkedinUrl}
+                    href={getSafeUrl(personalInfo.linkedinUrl)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:opacity-80 transition-opacity"
@@ -64,9 +65,9 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                     LinkedIn
                   </a>
                 )}
-                {personalInfo.portfolioUrl && (
+                {getSafeUrl(personalInfo.portfolioUrl) && (
                   <a
-                    href={personalInfo.portfolioUrl}
+                    href={getSafeUrl(personalInfo.portfolioUrl)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:opacity-80 transition-opacity"
@@ -184,9 +185,9 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                         {project.technologies.join(' • ')}
                       </p>
                     )}
-                  {project.url && (
+                  {getSafeUrl(project.url) && (
                     <a
-                      href={project.url}
+                      href={getSafeUrl(project.url)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm underline inline-block mb-2 hover:opacity-80 transition-opacity"

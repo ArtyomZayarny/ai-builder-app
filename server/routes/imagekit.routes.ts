@@ -4,11 +4,22 @@
 
 import express from 'express';
 import { uploadProfilePhoto } from '../controllers/imagekit.controller.js';
+import { authenticate } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// Upload profile photo (validation is handled in controller middleware array)
-router.post('/upload', uploadProfilePhoto);
+// Rate limiter for image uploads: 10 uploads per minute per user
+const uploadRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 uploads per window
+  message: 'Too many upload requests. Please try again in a minute.',
+  useUserId: true, // Use userId (endpoint is behind authenticate middleware)
+});
+
+// Upload profile photo (protected route)
+// Order matters: authenticate → rateLimiter → upload handler
+router.post('/upload', authenticate, uploadRateLimiter, uploadProfilePhoto);
 
 export default router;
 

@@ -37,13 +37,15 @@ interface ResumeFormData {
   selectedTemplate?: string;
 }
 
+type DirtyState = Partial<Record<keyof ResumeFormData | 'accentColor', boolean>>;
+
 interface UseAutoSaveOptions {
   resumeId: string | null;
   formData: ResumeFormData;
-  isDirty: boolean;
+  isDirty: DirtyState;
   isNewResume: boolean;
   setSaveStatus: (status: SaveStatus) => void;
-  setIsDirty: (dirty: boolean) => void;
+  setIsDirty: (section: keyof ResumeFormData | 'accentColor', dirty: boolean) => void;
   onSaveSuccess?: () => void;
   onSaveError?: (error: Error) => void;
   saveInterval?: number; // milliseconds (default: 30000 = 30 seconds)
@@ -66,9 +68,12 @@ export function useAutoSave({
   const retryCountRef = useRef(0);
   const isSavingRef = useRef(false);
 
-  // Save all form data to backend
+  // Save only dirty sections to backend
   const saveAllData = useCallback(async (): Promise<void> => {
-    if (!resumeId || isNewResume || !isDirty || isSavingRef.current) {
+    // Check if any section is dirty
+    const hasDirtySections = Object.values(isDirty).some(dirty => dirty === true);
+    
+    if (!resumeId || isNewResume || !hasDirtySections || isSavingRef.current) {
       return;
     }
 
@@ -76,8 +81,8 @@ export function useAutoSave({
     setSaveStatus('saving');
 
     try {
-      // Save Personal Info
-      if (formData.personalInfo) {
+      // Save Personal Info (only if dirty)
+      if (isDirty.personalInfo && formData.personalInfo) {
         await savePersonalInfo(resumeId, {
           name: formData.personalInfo.name || '',
           role: formData.personalInfo.role || '',
@@ -88,38 +93,52 @@ export function useAutoSave({
           portfolioUrl: formData.personalInfo.portfolioUrl || '',
           photoUrl: formData.personalInfo.photoUrl || '',
         });
+        setIsDirty('personalInfo', false);
       }
 
-      // Save Summary (if exists)
-      if (formData.summary?.content?.trim()) {
+      // Save Summary (only if dirty)
+      if (isDirty.summary && formData.summary?.content?.trim()) {
         await saveSummary(resumeId, {
           content: formData.summary.content,
         });
+        setIsDirty('summary', false);
       }
 
-      // Save Experiences (if exists)
-      if (formData.experiences && formData.experiences.length > 0) {
+      // Save Experiences (only if dirty)
+      if (isDirty.experiences && formData.experiences && formData.experiences.length > 0) {
         await saveExperiences(resumeId, formData.experiences);
+        setIsDirty('experiences', false);
       }
 
-      // Save Education (if exists)
-      if (formData.education && formData.education.length > 0) {
+      // Save Education (only if dirty)
+      if (isDirty.education && formData.education && formData.education.length > 0) {
         await saveEducation(resumeId, formData.education);
+        setIsDirty('education', false);
       }
 
-      // Save Projects (if exists)
-      if (formData.projects && formData.projects.length > 0) {
+      // Save Projects (only if dirty)
+      if (isDirty.projects && formData.projects && formData.projects.length > 0) {
         await saveProjects(resumeId, formData.projects);
+        setIsDirty('projects', false);
       }
 
-      // Save Skills (if exists)
-      if (formData.skills && formData.skills.length > 0) {
+      // Save Skills (only if dirty)
+      if (isDirty.skills && formData.skills && formData.skills.length > 0) {
         await saveSkills(resumeId, formData.skills);
+        setIsDirty('skills', false);
+      }
+
+      // Note: selectedTemplate and accentColor are saved via localStorage,
+      // so we just mark them as clean
+      if (isDirty.selectedTemplate) {
+        setIsDirty('selectedTemplate', false);
+      }
+      if (isDirty.accentColor) {
+        setIsDirty('accentColor', false);
       }
 
       // Success!
       setSaveStatus('saved');
-      setIsDirty(false); // Mark as clean after successful save
       retryCountRef.current = 0; // Reset retry count on success
       onSaveSuccess?.();
 
@@ -128,7 +147,7 @@ export function useAutoSave({
         setSaveStatus('idle');
       }, 2000);
     } catch (error) {
-      console.error('❌ Auto-save failed:', error);
+      console.error('Auto-save failed:', error);
       setSaveStatus('error');
 
       // Retry logic with exponential backoff
@@ -160,33 +179,8 @@ export function useAutoSave({
     onSaveError,
   ]);
 
-  // Auto-save effect: debounced save every 30 seconds if dirty
-  useEffect(() => {
-    // Clear existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    // Don't auto-save if:
-    // - No resume ID (new resume)
-    // - Not dirty (no changes)
-    // - Currently saving
-    if (!resumeId || isNewResume || !isDirty || isSavingRef.current) {
-      return;
-    }
-
-    // Set up debounced save
-    saveTimeoutRef.current = setTimeout(() => {
-      saveAllData();
-    }, saveInterval);
-
-    // Cleanup
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [resumeId, isNewResume, isDirty, saveInterval, saveAllData]);
+  // Auto-save disabled - only manual save on section change
+  // Removed automatic saving to prevent infinite loops and unwanted saves
 
   // Manual save function (for immediate save on navigation, etc.)
   const manualSave = useCallback(async () => {

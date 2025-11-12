@@ -124,11 +124,16 @@ interface ResumeFormData {
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
+// Track dirty state per section (includes form data sections + template/color)
+type DirtyState = Partial<Record<keyof ResumeFormData | 'accentColor', boolean>>;
+
 interface ResumeFormContextValue {
   formData: ResumeFormData;
   updateFormData: <K extends keyof ResumeFormData>(section: K, data: ResumeFormData[K]) => void;
-  isDirty: boolean;
-  setIsDirty: (dirty: boolean) => void;
+  isDirty: DirtyState;
+  setIsDirty: (section: keyof ResumeFormData | 'accentColor', dirty: boolean) => void;
+  isSectionDirty: (section: keyof ResumeFormData | 'accentColor') => boolean;
+  hasAnyDirty: () => boolean;
   isSaving: boolean;
   setIsSaving: (saving: boolean) => void;
   saveStatus: SaveStatus;
@@ -152,7 +157,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
 
   const [resumeId, setResumeId] = useState<string | null>(isNewResume ? null : id || null);
   const [formData, setFormData] = useState<ResumeFormData>({});
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, setIsDirtyState] = useState<DirtyState>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isLoading, setIsLoading] = useState(false);
@@ -170,7 +175,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
     (template: ResumeTemplate) => {
       setSelectedTemplateState(template);
       localStorage.setItem(`resume-template-${resumeId || 'new'}`, template);
-      setIsDirty(true);
+      setIsDirtyState(prev => ({ ...prev, selectedTemplate: true }));
     },
     [resumeId]
   );
@@ -186,7 +191,7 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
     (color: string) => {
       setAccentColorState(color);
       localStorage.setItem(`resume-accent-${resumeId || 'new'}`, color);
-      setIsDirty(true);
+      setIsDirtyState(prev => ({ ...prev, accentColor: true }));
     },
     [resumeId]
   );
@@ -228,10 +233,33 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
         ...prev,
         [section]: data,
       }));
-      setIsDirty(true);
+      setIsDirtyState(prev => ({ ...prev, [section]: true }));
     },
     []
   );
+
+  // Set dirty state for a specific section
+  const setIsDirty = useCallback((section: keyof ResumeFormData | 'accentColor', dirty: boolean) => {
+    setIsDirtyState(prev => {
+      if (dirty) {
+        return { ...prev, [section]: true };
+      } else {
+        const newState = { ...prev };
+        delete newState[section];
+        return newState;
+      }
+    });
+  }, []);
+
+  // Check if a specific section is dirty
+  const isSectionDirty = useCallback((section: keyof ResumeFormData | 'accentColor'): boolean => {
+    return isDirty[section] === true;
+  }, [isDirty]);
+
+  // Check if any section is dirty
+  const hasAnyDirty = useCallback((): boolean => {
+    return Object.values(isDirty).some(dirty => dirty === true);
+  }, [isDirty]);
 
   // Memoize context value to prevent unnecessary re-renders
   const value = useMemo<ResumeFormContextValue>(
@@ -240,6 +268,8 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       updateFormData,
       isDirty,
       setIsDirty,
+      isSectionDirty,
+      hasAnyDirty,
       isSaving,
       setIsSaving,
       saveStatus,
@@ -258,7 +288,11 @@ export function ResumeFormProvider({ children }: { children: ReactNode }) {
       formData,
       updateFormData,
       isDirty,
+      setIsDirty,
+      isSectionDirty,
+      hasAnyDirty,
       isSaving,
+      setIsSaving,
       saveStatus,
       isLoading,
       error,

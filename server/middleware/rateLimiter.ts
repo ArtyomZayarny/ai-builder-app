@@ -1,6 +1,7 @@
 /**
  * Rate Limiter Middleware
  * Simple in-memory rate limiting for API endpoints
+ * Uses userId for authenticated users, IP for anonymous users
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -9,6 +10,7 @@ interface RateLimitOptions {
   windowMs: number; // Time window in milliseconds
   max: number; // Max requests per window
   message?: string; // Custom error message
+  useUserId?: boolean; // If true, use userId (requires authenticate middleware). If false, use IP (for public endpoints)
 }
 
 interface RateLimitEntry {
@@ -37,13 +39,30 @@ setInterval(
 
 /**
  * Create a rate limiter middleware
+ * For authenticated endpoints: uses userId (requires authenticate middleware)
+ * For public endpoints: uses IP address
  */
 export function createRateLimiter(options: RateLimitOptions) {
-  const { windowMs, max, message = 'Too many requests, please try again later.' } = options;
+  const {
+    windowMs,
+    max,
+    message = 'Too many requests, please try again later.',
+    useUserId = false,
+  } = options;
 
   return (req: Request, res: Response, next: NextFunction) => {
-    // Use IP address as identifier (in production, you might use user ID)
-    const identifier = req.ip || req.socket.remoteAddress || 'unknown';
+    // Determine identifier based on configuration
+    let identifier: string;
+
+    if (useUserId && req.user?.userId) {
+      // For protected endpoints: use userId (authenticate middleware already verified user)
+      identifier = `user:${req.user.userId}`;
+    } else {
+      // For public endpoints: use IP address
+      // req.ip is set by Express trust proxy setting
+      identifier = `ip:${req.ip || req.socket.remoteAddress || 'unknown'}`;
+    }
+
     const now = Date.now();
 
     // Get or create rate limit entry

@@ -4,6 +4,7 @@
  */
 
 import { ResumeData } from '../../types/resume';
+import { getSafeUrl } from '../../utils/urlValidation';
 
 interface TechnicalTemplateProps {
   data: ResumeData;
@@ -67,11 +68,11 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                     <span className="text-gray-500">location:</span> {personalInfo.location}
                   </div>
                 )}
-                {personalInfo.linkedinUrl && (
+                {getSafeUrl(personalInfo.linkedinUrl) && (
                   <div>
                     <span className="text-gray-500">linkedin:</span>{' '}
                     <a
-                      href={personalInfo.linkedinUrl}
+                      href={getSafeUrl(personalInfo.linkedinUrl)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline hover:opacity-80 transition-opacity"
@@ -81,11 +82,11 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                     </a>
                   </div>
                 )}
-                {personalInfo.portfolioUrl && (
+                {getSafeUrl(personalInfo.portfolioUrl) && (
                   <div>
                     <span className="text-gray-500">portfolio:</span>{' '}
                     <a
-                      href={personalInfo.portfolioUrl}
+                      href={getSafeUrl(personalInfo.portfolioUrl)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline hover:opacity-80 transition-opacity"
@@ -179,9 +180,9 @@ export default function TechnicalTemplate({ data }: TechnicalTemplateProps) {
                         ))}
                       </div>
                     )}
-                  {project.url && (
+                  {getSafeUrl(project.url) && (
                     <a
-                      href={project.url}
+                      href={getSafeUrl(project.url)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs underline inline-block mb-2 font-mono hover:opacity-80 transition-opacity"

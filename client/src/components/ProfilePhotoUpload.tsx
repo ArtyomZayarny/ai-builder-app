@@ -3,7 +3,7 @@
  * Handles photo upload with preview and background removal option
  */
 
-import { useState, useRef, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadProfilePhoto } from '../services/imagekitApi';
@@ -23,6 +23,13 @@ export default function ProfilePhotoUpload({
   const [uploading, setUploading] = useState(false);
   const [removeBackground, setRemoveBackground] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync preview with currentPhotoUrl prop when it changes (e.g., after page reload)
+  useEffect(() => {
+    if (currentPhotoUrl) {
+      setPreview(currentPhotoUrl);
+    }
+  }, [currentPhotoUrl]);
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,14 +67,10 @@ export default function ProfilePhotoUpload({
 
     try {
       const result = await uploadProfilePhoto(file, removeBackground);
-      // Apply background removal transformation to URL if requested
-      let photoUrl = result.url;
-      if (removeBackground && photoUrl) {
-        // Add ImageKit transformation parameter for background removal
-        const separator = photoUrl.includes('?') ? '&' : '?';
-        photoUrl = `${photoUrl}${separator}tr=bg-transparent`;
-      }
-      onPhotoUploaded(photoUrl);
+      // Background removal is handled on the backend, so we just use the URL as-is
+      // Update preview to show the processed image from server (with background removed if requested)
+      setPreview(result.url);
+      onPhotoUploaded(result.url);
       toast.success('Photo uploaded!', {
         id: uploadToast,
         description: 'Your profile photo has been saved',

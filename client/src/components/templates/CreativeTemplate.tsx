@@ -4,6 +4,7 @@
  */
 
 import { ResumeData } from '../../types/resume';
+import { getSafeUrl } from '../../utils/urlValidation';
 
 interface CreativeTemplateProps {
   data: ResumeData;
@@ -59,9 +60,9 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                 {personalInfo.location && (
                   <div className="text-gray-600">{personalInfo.location}</div>
                 )}
-                {personalInfo.linkedinUrl && (
+                {getSafeUrl(personalInfo.linkedinUrl) && (
                   <a
-                    href={personalInfo.linkedinUrl}
+                    href={getSafeUrl(personalInfo.linkedinUrl)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block font-medium hover:opacity-80 transition-opacity"
@@ -70,9 +71,9 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                     LinkedIn →
                   </a>
                 )}
-                {personalInfo.portfolioUrl && (
+                {getSafeUrl(personalInfo.portfolioUrl) && (
                   <a
-                    href={personalInfo.portfolioUrl}
+                    href={getSafeUrl(personalInfo.portfolioUrl)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block font-medium hover:opacity-80 transition-opacity"
@@ -209,9 +210,9 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                           {project.technologies.join(' • ')}
                         </p>
                       )}
-                    {project.url && (
+                    {getSafeUrl(project.url) && (
                       <a
-                        href={project.url}
+                        href={getSafeUrl(project.url)!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs underline inline-block mb-1.5 hover:opacity-80 transition-opacity"

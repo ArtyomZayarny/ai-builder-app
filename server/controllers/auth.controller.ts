@@ -20,36 +20,48 @@ import { createRateLimiter } from '../middleware/rateLimiter.js';
  * Register new user
  * POST /api/auth/register
  */
-export const register = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { email, password, firstName, lastName } = req.body;
+export const register = [
+  createRateLimiter({
+    max: 3, // 3 registrations per hour (stricter than login)
+    windowMs: 60 * 60 * 1000, // 1 hour
+    message: 'Too many registration attempts. Please try again later.',
+    useUserId: false, // Use IP for registration endpoint (user not authenticated yet)
+  }),
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { email, password, firstName, lastName } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({
-      success: false,
-      error: 'Email and password are required',
-    });
-    return;
-  }
+    if (!email || !password) {
+      res.status(400).json({
+        success: false,
+        error: 'Email and password are required',
+      });
+      return;
+    }
 
-  const user = await registerUser({ email, password, firstName, lastName });
+    const user = await registerUser({ email, password, firstName, lastName });
 
-  res.status(201).json(
-    successResponse(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      'User registered successfully. Please check your email for verification.'
-    )
-  );
-});
+    res.status(201).json(
+      successResponse(
+        {
+          id: user.id,
+          email: user.email,
+        },
+        'User registered successfully. Please check your email for verification.'
+      )
+    );
+  }),
+];
 
 /**
  * Login user
  * POST /api/auth/login
  */
 export const login = [
-  createRateLimiter({ max: 5, windowMs: 15 * 60 * 1000 }), // 5 attempts per 15 minutes
+  createRateLimiter({ 
+    max: 5, 
+    windowMs: 15 * 60 * 1000, // 5 attempts per 15 minutes
+    useUserId: false, // Use IP for login endpoint (user not authenticated yet)
+  }),
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
@@ -75,7 +87,9 @@ export const login = [
       successResponse(
         {
           user: result.user,
-          token: result.token, // Also return in response for client-side storage if needed
+          // Token is stored in HttpOnly cookie (secure, not accessible to JavaScript)
+          // Returning token in response for debugging/logging purposes only
+          token: result.token,
         },
         'Login successful'
       )

@@ -93,10 +93,8 @@ export async function login(data: LoginInput): Promise<AuthResponse> {
 
   const authData = (result as ApiResponse<AuthResponse>).data;
 
-  // Store token in localStorage as backup
-  if (authData.token) {
-    localStorage.setItem('auth_token', authData.token);
-  }
+  // Token is stored in HttpOnly cookie by server (secure, not accessible to JavaScript)
+  // No need to store in localStorage (XSS vulnerability)
 
   return authData;
 }
@@ -106,22 +104,20 @@ export async function login(data: LoginInput): Promise<AuthResponse> {
  */
 export async function logout(): Promise<void> {
   await fetchAPI<void>('/auth/logout', 'POST');
-  localStorage.removeItem('auth_token');
+  // Cookie is cleared by server on logout
 }
 
 /**
  * Get current user
+ * Uses HttpOnly cookie for authentication (secure, not accessible to JavaScript)
  */
 export async function getCurrentUser(): Promise<User> {
-  const token = localStorage.getItem('auth_token');
-
   const response = await fetch(`${API_BASE_URL}/auth/me`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
     },
-    credentials: 'include',
+    credentials: 'include', // HttpOnly cookie is sent automatically
   });
 
   const result = await response.json();
