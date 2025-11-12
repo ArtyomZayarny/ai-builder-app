@@ -11,11 +11,11 @@ export const validate = (schema: ZodSchema) => (req: Request, _res: Response, ne
     // For personal-info updates, preserve photoUrl if validation fails
     const originalPhotoUrl = req.path.includes('personal-info') ? req.body.photoUrl : undefined;
     
-    const validated = schema.parse(req.body);
+    const validated = schema.parse(req.body) as Record<string, any>;
     
     // If photoUrl was removed during validation, restore it
     if (req.path.includes('personal-info') && originalPhotoUrl !== undefined && validated.photoUrl === undefined) {
-      (validated as any).photoUrl = originalPhotoUrl;
+      validated.photoUrl = originalPhotoUrl;
     }
     
     req.body = validated; // Replace with validated data
