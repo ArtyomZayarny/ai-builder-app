@@ -20,7 +20,7 @@ import type { ParsedResumeData } from '../services/pdfApi';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,12 +35,12 @@ export default function Dashboard() {
     }
   };
 
-  // Redirect to landing page if not authenticated
+  // Redirect to landing page if not authenticated (only after auth check is complete)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   // Fetch resumes on mount
   useEffect(() => {
@@ -48,6 +48,18 @@ export default function Dashboard() {
       fetchResumes();
     }
   }, [isAuthenticated]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <Loader2 size={48} className="text-primary-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Early return if not authenticated (prevents flash of content)
   if (!isAuthenticated) {
