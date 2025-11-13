@@ -75,12 +75,18 @@ export const login = [
 
     const result = await loginUser({ email, password });
 
+    // Determine if we're in production
+    const isProduction = process.env.NODE_ENV === 'production';
+
     // Set HttpOnly cookie for token
+    // For production (cross-origin on Vercel), use 'none' with secure: true
+    // For development (same-origin), use 'lax'
     res.cookie('token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction, // Must be true for sameSite: 'none' and for HTTPS
+      sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-origin in production
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/', // Ensure cookie is available for all paths
     });
 
     res.json(
@@ -102,7 +108,15 @@ export const login = [
  * POST /api/auth/logout
  */
 export const logout = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
-  res.clearCookie('token');
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Clear cookie with same settings used for setting it
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+  });
   res.json(successResponse(null, 'Logout successful'));
 });
 

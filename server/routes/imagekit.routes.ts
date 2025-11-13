@@ -6,6 +6,7 @@ import express from 'express';
 import { uploadProfilePhoto } from '../controllers/imagekit.controller.js';
 import { authenticate } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
+import { csrfProtection } from '../middleware/csrfProtection.js';
 
 const router = express.Router();
 
@@ -18,8 +19,8 @@ const uploadRateLimiter = createRateLimiter({
 });
 
 // Upload profile photo (protected route)
-// Order matters: authenticate → rateLimiter → upload handler
-router.post('/upload', authenticate, uploadRateLimiter, uploadProfilePhoto);
+// Order matters: csrfProtection → authenticate → rateLimiter → upload handler
+router.post('/upload', csrfProtection, authenticate, uploadRateLimiter, uploadProfilePhoto);
 
 export default router;
 
