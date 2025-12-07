@@ -3,7 +3,10 @@
  * Client-side API for PDF parsing operations
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+import { BACKEND_URL } from '../config';
+
+// eslint-disable-next-line no-constant-binary-expression
+const API_BASE_URL = `${BACKEND_URL}/api` || 'http://localhost:3001/api';
 
 export interface ParsedResumeData {
   personalInfo?: {
