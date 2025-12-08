@@ -4,19 +4,19 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, FileText, AlertCircle, Loader2, LogOut, User, Upload } from 'lucide-react';
+import { Plus, FileText, AlertCircle, Loader2, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ResumeCard from '../components/ResumeCard';
-import PDFUploadModal from '../components/PDFUploadModal';
+// import PDFUploadModal from '../components/PDFUploadModal'; // Temporarily disabled
 import {
   getAllResumes,
   deleteResume,
   duplicateResume,
-  createResumeFromPDF,
+  // createResumeFromPDF, // Temporarily disabled
 } from '../services/resumeApi';
 import { useAuth } from '../contexts/AuthContext';
 import type { Resume } from '../types/resume';
-import type { ParsedResumeData } from '../services/pdfApi';
+// import type { ParsedResumeData } from '../services/pdfApi'; // Temporarily disabled
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ export default function Dashboard() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showPDFModal, setShowPDFModal] = useState(false);
+  // const [showPDFModal, setShowPDFModal] = useState(false); // Temporarily disabled
 
   const handleLogout = async () => {
     try {
@@ -119,57 +119,58 @@ export default function Dashboard() {
     );
   };
 
-  const handlePDFImport = async (parsedData: ParsedResumeData) => {
-    setShowPDFModal(false);
+  // Temporarily disabled - PDF parsing functionality not ready
+  // const handlePDFImport = async (parsedData: ParsedResumeData) => {
+  //   setShowPDFModal(false);
 
-    try {
-      // Validate required fields
-      if (
-        !parsedData.personalInfo?.name ||
-        !parsedData.personalInfo?.email ||
-        !parsedData.personalInfo?.role
-      ) {
-        throw new Error('Missing required fields: name, email, and role are required');
-      }
+  //   try {
+  //     // Validate required fields
+  //     if (
+  //       !parsedData.personalInfo?.name ||
+  //       !parsedData.personalInfo?.email ||
+  //       !parsedData.personalInfo?.role
+  //     ) {
+  //       throw new Error('Missing required fields: name, email, and role are required');
+  //     }
 
-      // Prepare data for createResumeFromPDF
-      const resumeData = {
-        title: parsedData.personalInfo.name
-          ? `${parsedData.personalInfo.name}'s Resume (Imported)`
-          : 'Imported Resume',
-        template: 'classic' as const,
-        accentColor: '#3B82F6',
-        personalInfo: {
-          name: parsedData.personalInfo.name,
-          role: parsedData.personalInfo.role,
-          email: parsedData.personalInfo.email,
-          phone: parsedData.personalInfo.phone || '',
-          location: parsedData.personalInfo.location || '',
-          linkedinUrl: parsedData.personalInfo.linkedinUrl || '',
-          portfolioUrl: parsedData.personalInfo.portfolioUrl || '',
-          photoUrl: '',
-        },
-        summary: parsedData.summary?.content ? { content: parsedData.summary.content } : undefined,
-        experiences: parsedData.experiences || [],
-        education: parsedData.education || [],
-        projects: (parsedData.projects || []).map(p => ({
-          ...p,
-          technologies: p.technologies || [],
-        })),
-        skills: parsedData.skills || [],
-      };
+  //     // Prepare data for createResumeFromPDF
+  //     const resumeData = {
+  //       title: parsedData.personalInfo.name
+  //         ? `${parsedData.personalInfo.name}'s Resume (Imported)`
+  //         : 'Imported Resume',
+  //       template: 'classic' as const,
+  //       accentColor: '#3B82F6',
+  //       personalInfo: {
+  //         name: parsedData.personalInfo.name,
+  //         role: parsedData.personalInfo.role,
+  //         email: parsedData.personalInfo.email,
+  //         phone: parsedData.personalInfo.phone || '',
+  //         location: parsedData.personalInfo.location || '',
+  //         linkedinUrl: parsedData.personalInfo.linkedinUrl || '',
+  //         portfolioUrl: parsedData.personalInfo.portfolioUrl || '',
+  //         photoUrl: '',
+  //       },
+  //       summary: parsedData.summary?.content ? { content: parsedData.summary.content } : undefined,
+  //       experiences: parsedData.experiences || [],
+  //       education: parsedData.education || [],
+  //       projects: (parsedData.projects || []).map(p => ({
+  //         ...p,
+  //         technologies: p.technologies || [],
+  //       })),
+  //       skills: parsedData.skills || [],
+  //     };
 
-      // Create resume with all data in a single request (transaction on backend)
-      const newResume = await createResumeFromPDF(resumeData);
+  //     // Create resume with all data in a single request (transaction on backend)
+  //     const newResume = await createResumeFromPDF(resumeData);
 
-      // Redirect to the newly created resume
-      navigate(`/resume/${newResume.id}`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to import PDF';
-      setError(errorMessage);
-      console.error('Error importing PDF:', error);
-    }
-  };
+  //     // Redirect to the newly created resume
+  //     navigate(`/resume/${newResume.id}`);
+  //   } catch (error) {
+  //     const errorMessage = error instanceof Error ? error.message : 'Failed to import PDF';
+  //     setError(errorMessage);
+  //     console.error('Error importing PDF:', error);
+  //   }
+  // };
 
   // Loading state
   if (loading) {
@@ -222,7 +223,8 @@ export default function Dashboard() {
               <Plus size={24} />
               <span className="ml-2">Create Resume</span>
             </button>
-            <div className="flex items-center gap-2 text-gray-500">
+            {/* PDF Upload temporarily disabled - parsing functionality not ready */}
+            {/* <div className="flex items-center gap-2 text-gray-500">
               <span className="hidden sm:inline">or</span>
               <button
                 onClick={() => setShowPDFModal(true)}
@@ -231,15 +233,16 @@ export default function Dashboard() {
                 <Upload size={24} />
                 <span className="ml-2">Upload PDF</span>
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
 
-        <PDFUploadModal
+        {/* PDF Upload Modal temporarily disabled - parsing functionality not ready */}
+        {/* <PDFUploadModal
           isOpen={showPDFModal}
           onClose={() => setShowPDFModal(false)}
           onImport={handlePDFImport}
-        />
+        /> */}
       </div>
     );
   }
@@ -277,13 +280,14 @@ export default function Dashboard() {
               </div>
             )}
             <div className="flex items-center gap-3">
-              <button
+              {/* PDF Upload temporarily disabled - parsing functionality not ready */}
+              {/* <button
                 onClick={() => setShowPDFModal(true)}
                 className="btn-secondary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
               >
                 <Upload size={20} />
                 <span className="ml-2">Upload PDF</span>
-              </button>
+              </button> */}
               <button
                 onClick={handleCreateResume}
                 className="btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
@@ -316,11 +320,12 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <PDFUploadModal
+      {/* PDF Upload Modal temporarily disabled - parsing functionality not ready */}
+      {/* <PDFUploadModal
         isOpen={showPDFModal}
         onClose={() => setShowPDFModal(false)}
         onImport={handlePDFImport}
-      />
+      /> */}
     </div>
   );
 }
