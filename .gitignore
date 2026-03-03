@@ -40,5 +40,7 @@ scripts/
 .env.example
 
 # Task files
-# tasks.json
-# tasks/ 
+tasks/
+
+# Claude Code
+.claude/
