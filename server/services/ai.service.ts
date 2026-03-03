@@ -325,6 +325,170 @@ Enhanced description:`;
   return await generateContent(prompt);
 }
 
+// ============================================================
+// PDF Resume Parsing with Gemini Vision
+// ============================================================
+
+interface AIResumeResult {
+  personalInfo?: {
+    name?: string | null;
+    role?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    location?: string | null;
+    linkedinUrl?: string | null;
+    portfolioUrl?: string | null;
+  } | null;
+  summary?: { content?: string | null } | null;
+  experiences?: Array<{
+    company?: string | null;
+    role?: string | null;
+    location?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    isCurrent?: boolean;
+    description?: string | null;
+    order?: number;
+  }> | null;
+  education?: Array<{
+    institution?: string | null;
+    degree?: string | null;
+    field?: string | null;
+    graduationDate?: string | null;
+    location?: string | null;
+    gpa?: string | null;
+    description?: string | null;
+    order?: number;
+  }> | null;
+  projects?: Array<{
+    name?: string | null;
+    description?: string | null;
+    technologies?: string[] | null;
+    url?: string | null;
+    date?: string | null;
+    order?: number;
+  }> | null;
+  skills?: Array<{
+    name?: string | null;
+    category?: string | null;
+    order?: number;
+  }> | null;
+}
+
+export type { AIResumeResult };
+
+const RESUME_PARSE_PROMPT = `You are a resume/CV parser. Analyze this PDF and extract ALL information into the EXACT JSON structure below.
+
+Return ONLY this structure — no extra keys, no renaming:
+{
+  "personalInfo": { "name": "", "role": "", "email": "", "phone": "", "location": "", "linkedinUrl": "", "portfolioUrl": "" },
+  "summary": { "content": "" },
+  "experiences": [{ "company": "", "role": "", "location": "", "startDate": "", "endDate": "", "isCurrent": false, "description": "", "order": 0 }],
+  "education": [{ "institution": "", "degree": "", "field": "", "graduationDate": "", "location": "", "gpa": "", "description": "", "order": 0 }],
+  "projects": [{ "name": "", "description": "", "technologies": [], "url": "", "date": "", "order": 0 }],
+  "skills": [{ "name": "", "category": "", "order": 0 }]
+}
+
+Rules:
+- Use null for fields not found in the document
+- Dates: YYYY-MM format (e.g. "2023-06")
+- endDate: null if position is current
+- isCurrent: true if the position has no end date or says "Present"/"Current"
+- order: 0-based index, maintain document order
+- skills.category: one of "Languages", "Frontend", "Backend", "Database", "DevOps", "Tools", "Soft Skills"
+- Extract ALL entries — every job, every degree, every skill
+- description for experiences: preserve bullet points, join with newlines
+- Do NOT invent information not present in the document`;
+
+const PDF_PARSE_TIMEOUT = 45000; // 45 seconds — PDF processing takes longer
+
+/**
+ * Parse a resume PDF using Gemini Vision (inlineData)
+ * Sends the PDF binary directly to Gemini for structured extraction
+ */
+export async function parseResumeWithAI(pdfBuffer: Buffer): Promise<AIResumeResult> {
+  if (!isAIServiceAvailable() || !GEMINI_API_KEY) {
+    throw new Error('AI service is not available');
+  }
+
+  const base64 = pdfBuffer.toString('base64');
+  const baseUrl = GEMINI_API_URL.replace(/\/$/, '');
+  const apiUrl = `${baseUrl}/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY.trim())}`;
+
+  const requestBody = {
+    contents: [{
+      parts: [
+        { inlineData: { mimeType: 'application/pdf', data: base64 } },
+        { text: RESUME_PARSE_PROMPT },
+      ],
+    }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0,
+    },
+  };
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('AI PDF parsing timeout — exceeded 45 seconds')), PDF_PARSE_TIMEOUT);
+  });
+
+  console.log('🤖 Sending PDF to Gemini for parsing (%d KB)', Math.round(pdfBuffer.length / 1024));
+
+  const fetchPromise = fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+  }).then(async response => {
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage: string;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+      } catch {
+        errorMessage = `HTTP ${response.status}: ${errorText.slice(0, 200)}`;
+      }
+      throw new Error(`Gemini PDF parse failed: ${errorMessage}`);
+    }
+    return response.json() as Promise<{
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> };
+      }>;
+    }>;
+  });
+
+  const result = await Promise.race([fetchPromise, timeoutPromise]);
+
+  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error('Gemini returned empty response for PDF parsing');
+  }
+
+  console.log('🤖 Gemini response received (%d chars)', text.length);
+
+  try {
+    return JSON.parse(text) as AIResumeResult;
+  } catch {
+    // Gemini sometimes produces slightly malformed JSON (e.g. missing closing braces before commas)
+    // Attempt lightweight repairs before giving up
+    let repaired = text;
+
+    // Fix missing } before , in arrays: "order": 0\n    , → "order": 0\n    },
+    repaired = repaired.replace(/(\n\s*),(\s*\n\s*\{)/g, '$1},$2');
+
+    // Try to extract JSON from markdown code blocks (```json ... ```)
+    const jsonMatch = repaired.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) repaired = jsonMatch[1].trim();
+
+    try {
+      return JSON.parse(repaired) as AIResumeResult;
+    } catch {
+      console.error('🤖 Failed to parse Gemini JSON:', text.slice(0, 500));
+      throw new Error('Gemini returned invalid JSON for PDF parsing');
+    }
+  }
+}
+
 /**
  * Health check for AI service
  */

@@ -74,8 +74,24 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
       const page = await pdfDocument.getPage(pageNum);
       const textContent = await page.getTextContent();
 
-      // Combine text items from the page
-      const pageText = textContent.items.map((item: any) => item.str || '').join(' ');
+      // Use Y-coordinates to reconstruct line breaks instead of joining with spaces
+      // pdfjs items have transform[5] = Y position; a significant Y change means a new line
+      let lastY: number | null = null;
+      const parts: string[] = [];
+      for (const item of textContent.items) {
+        const typedItem = item as any;
+        const y = typedItem.transform?.[5];
+        if (lastY !== null && y !== undefined && Math.abs(y - lastY) > 2) {
+          parts.push('\n');
+        }
+        if (typedItem.str) {
+          parts.push(typedItem.str);
+        }
+        if (y !== undefined) {
+          lastY = y;
+        }
+      }
+      const pageText = parts.join('');
 
       fullText += pageText;
 
@@ -2161,10 +2177,127 @@ function calculateConfidence(data: ParsedResumeData): number {
   return Math.min(1, confidence);
 }
 
+// ============================================================
+// AI Result → ParsedResumeData Mapping
+// ============================================================
+
+const VALID_SKILL_CATEGORIES = new Set([
+  'Languages', 'Frontend', 'Backend', 'Database', 'DevOps', 'Tools', 'Soft Skills',
+]);
+
+const DATE_RE = /^\d{4}-\d{2}$/;
+
+function cleanString(val: string | null | undefined): string | undefined {
+  if (val == null) return undefined;
+  const trimmed = val.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function cleanDate(val: string | null | undefined): string | undefined {
+  const s = cleanString(val);
+  if (!s) return undefined;
+  // YYYY-MM → YYYY-MM-01 (PostgreSQL DATE requires full date)
+  if (DATE_RE.test(s)) return `${s}-01`;
+  // YYYY-MM-DD → keep as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return undefined;
+}
+
+function mapAIResultToParsedData(ai: import('./ai.service.js').AIResumeResult): ParsedResumeData {
+  const personalInfo = ai.personalInfo ? {
+    name: cleanString(ai.personalInfo.name),
+    role: cleanString(ai.personalInfo.role),
+    email: cleanString(ai.personalInfo.email),
+    phone: cleanString(ai.personalInfo.phone),
+    location: cleanString(ai.personalInfo.location),
+    linkedinUrl: cleanString(ai.personalInfo.linkedinUrl),
+    portfolioUrl: cleanString(ai.personalInfo.portfolioUrl),
+  } : undefined;
+
+  const summaryContent = cleanString(ai.summary?.content);
+  const summary = summaryContent ? { content: summaryContent } : undefined;
+
+  const experiences: Experience[] = (ai.experiences ?? [])
+    .filter(e => e != null)
+    .map((e, i) => ({
+      company: cleanString(e.company),
+      role: cleanString(e.role),
+      location: cleanString(e.location),
+      startDate: cleanDate(e.startDate),
+      endDate: e.isCurrent ? null : cleanDate(e.endDate) ?? null,
+      isCurrent: e.isCurrent ?? false,
+      description: cleanString(e.description),
+      order: e.order ?? i,
+    }));
+
+  const education: Education[] = (ai.education ?? [])
+    .filter(e => e != null)
+    .map((e, i) => ({
+      institution: cleanString(e.institution),
+      degree: cleanString(e.degree),
+      field: cleanString(e.field) ?? '',
+      location: cleanString(e.location) ?? '',
+      graduationDate: cleanDate(e.graduationDate) ?? '',
+      gpa: cleanString(e.gpa) ?? '',
+      description: cleanString(e.description) ?? '',
+      order: e.order ?? i,
+    }));
+
+  const projects: Project[] = (ai.projects ?? [])
+    .filter(p => p != null)
+    .map((p, i) => ({
+      name: cleanString(p.name),
+      description: cleanString(p.description),
+      technologies: p.technologies?.filter((t): t is string => t != null) ?? [],
+      url: cleanString(p.url) ?? '',
+      date: cleanDate(p.date) ?? '',
+      order: p.order ?? i,
+    }));
+
+  const skills: Skill[] = (ai.skills ?? [])
+    .filter(s => s != null && s.name)
+    .map((s, i) => ({
+      name: cleanString(s.name)!,
+      category: VALID_SKILL_CATEGORIES.has(s.category ?? '') ? s.category! : 'Tools',
+      order: s.order ?? i,
+    }));
+
+  const hasPersonalInfo = personalInfo && Object.values(personalInfo).some(v => v !== undefined);
+
+  const parsed: ParsedResumeData = {
+    personalInfo: hasPersonalInfo ? personalInfo : undefined,
+    summary,
+    experiences: experiences.length > 0 ? experiences : undefined,
+    education: education.length > 0 ? education : undefined,
+    projects: projects.length > 0 ? projects : undefined,
+    skills: skills.length > 0 ? skills : undefined,
+    confidence: 0,
+  };
+
+  parsed.confidence = calculateConfidence(parsed);
+  return parsed;
+}
+
 /**
  * Parse PDF resume and extract structured data
  */
 export async function parsePDFResume(buffer: Buffer): Promise<ParsedResumeData> {
+  // Try AI parsing first
+  try {
+    const { isAIServiceAvailable, parseResumeWithAI } = await import('./ai.service.js');
+    if (isAIServiceAvailable()) {
+      console.log('🤖 Attempting AI-powered PDF parsing...');
+      const aiResult = await parseResumeWithAI(buffer);
+      const mapped = mapAIResultToParsedData(aiResult);
+      console.log(`✅ AI parsing successful, confidence: ${(mapped.confidence * 100).toFixed(1)}%`);
+      return mapped;
+    }
+  } catch (error) {
+    console.warn('⚠️ AI parsing failed, falling back to regex:', error instanceof Error ? error.message : error);
+  }
+
+  // Fallback: existing regex parser
+  console.log('📝 Using regex-based PDF parsing...');
   const text = await extractTextFromPDF(buffer);
 
   if (!text || text.length < 100) {
