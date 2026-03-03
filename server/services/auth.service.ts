@@ -6,8 +6,12 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import pool from '../db/connection.js';
 import { NotFoundError, ValidationError, UnauthorizedError } from '../utils/errors.js';
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
@@ -18,12 +22,14 @@ const LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes
 interface UserRow {
   id: number;
   email: string;
-  password_hash: string;
+  password_hash: string | null;
   first_name: string | null;
   last_name: string | null;
   email_verified: boolean;
   failed_login_attempts: number;
   account_locked_until: Date | null;
+  google_id: string | null;
+  auth_provider: string;
 }
 
 interface RegisterInput {
@@ -142,6 +148,11 @@ export async function loginUser(data: LoginInput): Promise<{ token: string; user
     throw new UnauthorizedError('Account is temporarily locked due to too many failed login attempts');
   }
 
+  // Google-only users cannot log in with password
+  if (!user.password_hash) {
+    throw new UnauthorizedError('This account uses Google sign-in. Please continue with Google.');
+  }
+
   // Verify password
   const isPasswordValid = await comparePassword(data.password, user.password_hash);
 
@@ -191,11 +202,80 @@ export async function loginUser(data: LoginInput): Promise<{ token: string; user
 }
 
 /**
+ * Google OAuth login/register
+ * Verifies Google ID token, finds or creates user, returns JWT
+ */
+export async function googleLogin(idToken: string): Promise<{ token: string; user: { id: number; email: string; firstName?: string; lastName?: string } }> {
+  // Verify the Google ID token
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload || !payload.email) {
+    throw new ValidationError('Invalid Google token');
+  }
+
+  const { sub: googleId, email, given_name: firstName, family_name: lastName, email_verified } = payload;
+
+  // Check if user exists by google_id
+  let result = await pool.query<UserRow>(
+    'SELECT id, email, first_name, last_name, google_id, auth_provider FROM users WHERE google_id = $1',
+    [googleId]
+  );
+
+  let user: { id: number; email: string; first_name: string | null; last_name: string | null };
+
+  if (result.rows.length > 0) {
+    // Existing Google user — just log in
+    user = result.rows[0];
+  } else {
+    // Check if user exists by email (account linking)
+    result = await pool.query<UserRow>(
+      'SELECT id, email, first_name, last_name, google_id, auth_provider FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length > 0) {
+      // Link Google ID to existing email account
+      const existing = result.rows[0];
+      await pool.query(
+        `UPDATE users SET google_id = $1, email_verified = TRUE, updated_at = NOW() WHERE id = $2`,
+        [googleId, existing.id]
+      );
+      user = existing;
+    } else {
+      // Create new user (Google-only, no password)
+      const insertResult = await pool.query<{ id: number; email: string; first_name: string | null; last_name: string | null }>(
+        `INSERT INTO users (email, password_hash, first_name, last_name, google_id, auth_provider, email_verified)
+         VALUES ($1, NULL, $2, $3, $4, 'google', $5)
+         RETURNING id, email, first_name, last_name`,
+        [email, firstName || null, lastName || null, googleId, email_verified ?? true]
+      );
+      user = insertResult.rows[0];
+    }
+  }
+
+  const token = generateToken(user.id, user.email);
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name || undefined,
+      lastName: user.last_name || undefined,
+    },
+  };
+}
+
+/**
  * Get user by ID
  */
-export async function getUserById(userId: number): Promise<{ id: number; email: string; firstName?: string; lastName?: string; emailVerified: boolean }> {
-  const result = await pool.query<{ id: number; email: string; first_name: string | null; last_name: string | null; email_verified: boolean }>(
-    `SELECT id, email, first_name, last_name, email_verified
+export async function getUserById(userId: number): Promise<{ id: number; email: string; firstName?: string; lastName?: string; emailVerified: boolean; authProvider?: string }> {
+  const result = await pool.query<{ id: number; email: string; first_name: string | null; last_name: string | null; email_verified: boolean; auth_provider: string }>(
+    `SELECT id, email, first_name, last_name, email_verified, auth_provider
      FROM users WHERE id = $1`,
     [userId]
   );
@@ -211,6 +291,7 @@ export async function getUserById(userId: number): Promise<{ id: number; email: 
     firstName: user.first_name || undefined,
     lastName: user.last_name || undefined,
     emailVerified: user.email_verified,
+    authProvider: user.auth_provider,
   };
 }
 

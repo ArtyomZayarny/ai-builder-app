@@ -25,6 +25,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   emailVerified: boolean;
+  authProvider?: string;
 }
 
 export interface AuthResponse {
@@ -97,6 +98,29 @@ export async function login(data: LoginInput): Promise<AuthResponse> {
   // No need to store in localStorage (XSS vulnerability)
 
   return authData;
+}
+
+/**
+ * Google OAuth login
+ */
+export async function googleLogin(idToken: string): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/google`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ idToken }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    const errorData = result as ErrorResponse;
+    throw new Error(errorData.error || 'Google login failed');
+  }
+
+  return (result as ApiResponse<AuthResponse>).data;
 }
 
 /**

@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 import {
   registerUser,
   loginUser,
+  googleLogin,
   getUserById,
   requestPasswordReset,
   resetPassword,
@@ -98,6 +99,51 @@ export const login = [
           token: result.token,
         },
         'Login successful'
+      )
+    );
+  }),
+];
+
+/**
+ * Google OAuth login/register
+ * POST /api/auth/google
+ */
+export const googleAuth = [
+  createRateLimiter({
+    max: 10,
+    windowMs: 15 * 60 * 1000,
+    useUserId: false,
+  }),
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      res.status(400).json({
+        success: false,
+        error: 'Google ID token is required',
+      });
+      return;
+    }
+
+    const result = await googleLogin(idToken);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    res.json(
+      successResponse(
+        {
+          user: result.user,
+          token: result.token,
+        },
+        'Google login successful'
       )
     );
   }),
